@@ -1,0 +1,184 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.InstructionDecoder = void 0;
+const types_1 = require("./types");
+const instructions_1 = require("./instructions");
+const processor_flags_1 = require("./processor-flags");
+class InstructionDecoder {
+    constructor() {
+        this.flags = (0, processor_flags_1.createDefaultFlags)();
+    }
+    // Legacy compatibility
+    get mFlag() { return this.flags.m; }
+    get xFlag() { return this.flags.x; }
+    setFlags(m, x) {
+        this.flags.m = m;
+        this.flags.x = x;
+    }
+    getFlags() {
+        return { ...this.flags };
+    }
+    setProcessorFlags(flags) {
+        this.flags = { ...flags };
+    }
+    decode(data, offset, address) {
+        if (offset >= data.length) {
+            return null;
+        }
+        const opcode = data[offset];
+        const instruction = instructions_1.INSTRUCTION_SET.get(opcode);
+        if (!instruction) {
+            // Unknown instruction - treat as data byte
+            return {
+                address,
+                bytes: [opcode],
+                instruction: {
+                    opcode,
+                    mnemonic: 'DB',
+                    addressingMode: types_1.AddressingMode.Immediate,
+                    bytes: 1,
+                    cycles: 0
+                },
+                operand: opcode
+            };
+        }
+        // Adjust instruction byte count based on processor flags
+        let actualBytes = instruction.bytes;
+        const bytes = [opcode];
+        let operand;
+        // Handle variable-length instructions based on M and X flags
+        if (instruction.addressingMode === types_1.AddressingMode.Immediate) {
+            // Accumulator/memory operations depend on M flag
+            if (instruction.mnemonic === 'LDA' || instruction.mnemonic === 'ADC' ||
+                instruction.mnemonic === 'SBC' || instruction.mnemonic === 'CMP' ||
+                instruction.mnemonic === 'AND' || instruction.mnemonic === 'ORA' ||
+                instruction.mnemonic === 'EOR' || instruction.mnemonic === 'BIT') {
+                actualBytes = this.mFlag ? 2 : 3; // 8-bit vs 16-bit accumulator
+            }
+            // Index operations depend on X flag
+            else if (instruction.mnemonic === 'LDX' || instruction.mnemonic === 'LDY' ||
+                instruction.mnemonic === 'CPX' || instruction.mnemonic === 'CPY') {
+                actualBytes = this.xFlag ? 2 : 3; // 8-bit vs 16-bit index
+            }
+        }
+        // Read operand bytes
+        for (let i = 1; i < actualBytes && (offset + i) < data.length; i++) {
+            bytes.push(data[offset + i]);
+        }
+        // Calculate operand value
+        if (actualBytes > 1) {
+            switch (actualBytes) {
+                case 2:
+                    operand = bytes[1];
+                    break;
+                case 3:
+                    if (instruction.addressingMode === types_1.AddressingMode.RelativeLong) {
+                        // 16-bit signed relative
+                        operand = bytes[1] | (bytes[2] << 8);
+                        if (operand & 0x8000) {
+                            operand = operand - 0x10000; // Convert to signed
+                        }
+                    }
+                    else {
+                        operand = bytes[1] | (bytes[2] << 8);
+                    }
+                    break;
+                case 4:
+                    operand = bytes[1] | (bytes[2] << 8) | (bytes[3] << 16);
+                    break;
+            }
+        }
+        // Handle relative addressing - calculate target address
+        if (instruction.addressingMode === types_1.AddressingMode.Relative) {
+            const displacement = operand > 127 ? operand - 256 : operand;
+            operand = (address + actualBytes + displacement) & 0xFFFF;
+        }
+        else if (instruction.addressingMode === types_1.AddressingMode.RelativeLong) {
+            operand = (address + actualBytes + operand) & 0xFFFFFF;
+        }
+        // Update processor flags for REP/SEP instructions
+        if (instruction.mnemonic === 'REP' && operand !== undefined) {
+            this.flags = (0, processor_flags_1.applyREP)(this.flags, operand);
+        }
+        else if (instruction.mnemonic === 'SEP' && operand !== undefined) {
+            this.flags = (0, processor_flags_1.applySEP)(this.flags, operand);
+        }
+        return {
+            address,
+            bytes,
+            instruction: {
+                ...instruction,
+                bytes: actualBytes
+            },
+            operand
+        };
+    }
+    formatOperand(line) {
+        const { instruction, operand } = line;
+        if (operand === undefined) {
+            return '';
+        }
+        switch (instruction.addressingMode) {
+            case types_1.AddressingMode.Implied:
+                return '';
+            case types_1.AddressingMode.Accumulator:
+                return 'A';
+            case types_1.AddressingMode.Immediate:
+                if (instruction.bytes === 2) {
+                    return `#$${operand.toString(16).toUpperCase().padStart(2, '0')}`;
+                }
+                else {
+                    return `#$${operand.toString(16).toUpperCase().padStart(4, '0')}`;
+                }
+            case types_1.AddressingMode.ZeroPage:
+            case types_1.AddressingMode.Direct:
+                return `$${operand.toString(16).toUpperCase().padStart(2, '0')}`;
+            case types_1.AddressingMode.ZeroPageX:
+            case types_1.AddressingMode.DirectX:
+                return `$${operand.toString(16).toUpperCase().padStart(2, '0')},X`;
+            case types_1.AddressingMode.ZeroPageY:
+            case types_1.AddressingMode.DirectY:
+                return `$${operand.toString(16).toUpperCase().padStart(2, '0')},Y`;
+            case types_1.AddressingMode.Absolute:
+                return `$${operand.toString(16).toUpperCase().padStart(4, '0')}`;
+            case types_1.AddressingMode.AbsoluteX:
+                return `$${operand.toString(16).toUpperCase().padStart(4, '0')},X`;
+            case types_1.AddressingMode.AbsoluteY:
+                return `$${operand.toString(16).toUpperCase().padStart(4, '0')},Y`;
+            case types_1.AddressingMode.AbsoluteLong:
+                return `$${operand.toString(16).toUpperCase().padStart(6, '0')}`;
+            case types_1.AddressingMode.AbsoluteLongX:
+                return `$${operand.toString(16).toUpperCase().padStart(6, '0')},X`;
+            case types_1.AddressingMode.DirectIndirect:
+                return `($${operand.toString(16).toUpperCase().padStart(2, '0')})`;
+            case types_1.AddressingMode.DirectIndirectX:
+                return `($${operand.toString(16).toUpperCase().padStart(2, '0')},X)`;
+            case types_1.AddressingMode.DirectIndirectY:
+                return `($${operand.toString(16).toUpperCase().padStart(2, '0')}),Y`;
+            case types_1.AddressingMode.DirectIndirectLongY:
+                return `[$${operand.toString(16).toUpperCase().padStart(2, '0')}],Y`;
+            case types_1.AddressingMode.AbsoluteIndirect:
+                return `($${operand.toString(16).toUpperCase().padStart(4, '0')})`;
+            case types_1.AddressingMode.AbsoluteIndirectLong:
+                return `[$${operand.toString(16).toUpperCase().padStart(4, '0')}]`;
+            case types_1.AddressingMode.AbsoluteIndexedIndirect:
+                return `($${operand.toString(16).toUpperCase().padStart(4, '0')},X)`;
+            case types_1.AddressingMode.Relative:
+                return `$${operand.toString(16).toUpperCase().padStart(4, '0')}`;
+            case types_1.AddressingMode.RelativeLong:
+                return `$${operand.toString(16).toUpperCase().padStart(6, '0')}`;
+            case types_1.AddressingMode.StackRelative:
+                return `$${operand.toString(16).toUpperCase().padStart(2, '0')},S`;
+            case types_1.AddressingMode.StackRelativeIndirectIndexed:
+                return `($${operand.toString(16).toUpperCase().padStart(2, '0')},S),Y`;
+            case types_1.AddressingMode.BlockMove:
+                const srcBank = (operand >> 8) & 0xFF;
+                const destBank = operand & 0xFF;
+                return `$${srcBank.toString(16).toUpperCase().padStart(2, '0')},$${destBank.toString(16).toUpperCase().padStart(2, '0')}`;
+            default:
+                return `$${operand.toString(16).toUpperCase()}`;
+        }
+    }
+}
+exports.InstructionDecoder = InstructionDecoder;
+//# sourceMappingURL=decoder.js.map

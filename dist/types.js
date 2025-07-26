@@ -1,0 +1,33 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+exports.AddressingMode = void 0;
+var AddressingMode;
+(function (AddressingMode) {
+    AddressingMode["Implied"] = "imp";
+    AddressingMode["Accumulator"] = "A";
+    AddressingMode["Immediate"] = "#";
+    AddressingMode["ZeroPage"] = "zp";
+    AddressingMode["ZeroPageX"] = "zp,X";
+    AddressingMode["ZeroPageY"] = "zp,Y";
+    AddressingMode["Absolute"] = "abs";
+    AddressingMode["AbsoluteX"] = "abs,X";
+    AddressingMode["AbsoluteY"] = "abs,Y";
+    AddressingMode["AbsoluteLong"] = "long";
+    AddressingMode["AbsoluteLongX"] = "long,X";
+    AddressingMode["Direct"] = "dp";
+    AddressingMode["DirectX"] = "dp,X";
+    AddressingMode["DirectY"] = "dp,Y";
+    AddressingMode["DirectIndirect"] = "(dp)";
+    AddressingMode["DirectIndirectX"] = "(dp,X)";
+    AddressingMode["DirectIndirectY"] = "(dp),Y";
+    AddressingMode["DirectIndirectLongY"] = "[dp],Y";
+    AddressingMode["AbsoluteIndirect"] = "(abs)";
+    AddressingMode["AbsoluteIndirectLong"] = "[abs]";
+    AddressingMode["AbsoluteIndexedIndirect"] = "(abs,X)";
+    AddressingMode["Relative"] = "rel";
+    AddressingMode["RelativeLong"] = "rell";
+    AddressingMode["StackRelative"] = "sr,S";
+    AddressingMode["StackRelativeIndirectIndexed"] = "(sr,S),Y";
+    AddressingMode["BlockMove"] = "xyc";
+})(AddressingMode || (exports.AddressingMode = AddressingMode = {}));
+//# sourceMappingURL=types.js.map

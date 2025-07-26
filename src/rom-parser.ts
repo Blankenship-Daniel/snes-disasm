@@ -1,0 +1,346 @@
+import * as fs from 'fs';
+import { 
+  CartridgeType, 
+  CartridgeInfo, 
+  MemorySpeed, 
+  MemoryRegion,
+  detectCartridgeType, 
+  getMemorySpeed, 
+  hasBatteryBackup, 
+  getSRAMSize,
+  createMemoryLayout 
+} from './cartridge-types';
+
+export interface SNESHeader {
+  title: string;
+  mapMode: number;
+  cartridgeType: number;
+  romSize: number;
+  ramSize: number;
+  countryCode: number;
+  licenseCode: number;
+  versionNumber: number;
+  checksum: number;
+  complement: number;
+  nativeVectors: {
+    cop: number;
+    brk: number;
+    abort: number;
+    nmi: number;
+    reset: number;
+    irq: number;
+  };
+  emulationVectors: {
+    cop: number;
+    brk: number;
+    abort: number;
+    nmi: number;
+    reset: number;
+    irq: number;
+  };
+}
+
+export interface SNESRom {
+  header: SNESHeader;
+  data: Buffer;
+  isHiRom: boolean;
+  hasHeader: boolean;
+  cartridgeInfo: CartridgeInfo;
+  memoryRegions: MemoryRegion[];
+}
+
+export class RomParser {
+  static parse(filePath: string): SNESRom {
+    const data = fs.readFileSync(filePath);
+    
+    // Check for SMC header (512 bytes)
+    const hasHeader = data.length % 1024 === 512;
+    const romData = hasHeader ? data.slice(512) : data;
+    
+    // Determine ROM mapping mode
+    const hiRomHeaderOffset = 0x7FC0;
+    const loRomHeaderOffset = 0xFFC0;
+    
+    // Check both LoROM and HiROM headers to determine which is valid
+    let headerOffset = loRomHeaderOffset;
+    let isHiRom = false;
+    
+    if (romData.length > Math.max(loRomHeaderOffset, hiRomHeaderOffset) + 0x40) {
+      const loRomScore = this.scoreHeader(romData, loRomHeaderOffset, false);
+      const hiRomScore = this.scoreHeader(romData, hiRomHeaderOffset, true);
+      
+      if (hiRomScore > loRomScore) {
+        headerOffset = hiRomHeaderOffset;
+        isHiRom = true;
+      } else {
+        headerOffset = loRomHeaderOffset;
+        isHiRom = false;
+      }
+    }
+    
+    const header = this.parseHeader(romData, headerOffset);
+    
+    // Detect cartridge type and create enhanced cartridge info
+    const cartridgeType = detectCartridgeType(header.mapMode, header.cartridgeType);
+    const memorySpeed = getMemorySpeed(header.mapMode);
+    const hasBattery = hasBatteryBackup(header.cartridgeType);
+    const sramSize = getSRAMSize(header.ramSize);
+    
+    const cartridgeInfo: CartridgeInfo = {
+      type: cartridgeType,
+      mapMode: header.mapMode,
+      romSize: this.getROMSize(header.romSize),
+      ramSize: sramSize,
+      hasBattery,
+      hasRTC: cartridgeType === CartridgeType.SRTC,
+      speed: memorySpeed,
+      regions: [],
+      specialChip: this.getSpecialChipName(cartridgeType)
+    };
+    
+    // Create memory layout
+    const memoryRegions = createMemoryLayout(cartridgeInfo);
+    cartridgeInfo.regions = memoryRegions;
+    
+    return {
+      header,
+      data: romData,
+      isHiRom,
+      hasHeader,
+      cartridgeInfo,
+      memoryRegions
+    };
+  }
+  
+  private static scoreHeader(data: Buffer, offset: number, isHiRom: boolean): number {
+    let score = 0;
+    
+    // Enhanced title validity check (max 35 points)
+    const title = data.slice(offset, offset + 21).toString('ascii').trim();
+    const printableChars = title.split('').filter(c => c.charCodeAt(0) >= 32 && c.charCodeAt(0) <= 126).length;
+    const titleRatio = title.length > 0 ? printableChars / title.length : 0;
+    
+    if (titleRatio >= 0.9) score += 35;
+    else if (titleRatio >= 0.8) score += 25;
+    else if (titleRatio >= 0.6) score += 15;
+    else if (titleRatio >= 0.4) score += 5;
+    
+    // Enhanced map mode check (max 25 points)
+    const mapMode = data[offset + 0x15];
+    const mapType = mapMode & 0x0F;
+    const speed = (mapMode & 0x30) >> 4;
+    
+    if (isHiRom) {
+      if ((mapMode & 0x01) === 1) score += 20; // HiROM should have bit 0 set
+      if (mapType === 0x01 || mapType === 0x05) score += 5; // Valid HiROM map types
+    } else {
+      if ((mapMode & 0x01) === 0) score += 20; // LoROM should have bit 0 clear  
+      if (mapType === 0x00 || mapType === 0x02 || mapType === 0x03) score += 5; // Valid LoROM map types
+    }
+    
+    // ROM size validation (max 15 points)
+    const romSize = data[offset + 0x17];
+    if (romSize >= 0x07 && romSize <= 0x0D) {
+      score += 15;
+    } else if (romSize >= 0x05 && romSize <= 0x0F) {
+      score += 8; // Extended range with lower score
+    }
+    
+    // Cartridge type validation (max 10 points)
+    const cartridgeType = data[offset + 0x16];
+    const validCartridgeTypes = [
+      0x00, 0x01, 0x02, 0x03, 0x05, 0x06, 0x09, 0x0A, 0x13, 0x14, 0x15, 0x1A,
+      0x34, 0x35, 0x43, 0x45, 0x55, 0xF3, 0xF5, 0xF6, 0xF9
+    ];
+    if (validCartridgeTypes.includes(cartridgeType)) score += 10;
+    
+    // Country code validation (max 8 points)
+    const countryCode = data[offset + 0x19];
+    if (countryCode <= 0x0D) score += 8;
+    
+    // Complement checksum validation (max 15 points)
+    const checksum = data.readUInt16LE(offset + 0x1C);
+    const complement = data.readUInt16LE(offset + 0x1E);
+    if ((checksum ^ complement) === 0xFFFF) score += 15;
+    
+    // Reset vector validation (max 12 points)
+    const resetVector = data.readUInt16LE(offset + 0x2C);
+    if (resetVector >= 0x8000 && resetVector <= 0xFFFF) {
+      score += 12;
+    } else if (resetVector >= 0x4000) {
+      score += 6; // Partial credit for reasonable vectors
+    }
+    
+    // Additional vector validation (max 10 points)
+    const nmiVector = data.readUInt16LE(offset + 0x2A);
+    const irqVector = data.readUInt16LE(offset + 0x2E);
+    
+    let vectorScore = 0;
+    if (nmiVector >= 0x8000 && nmiVector <= 0xFFFF) vectorScore += 5;
+    if (irqVector >= 0x8000 && irqVector <= 0xFFFF) vectorScore += 5;
+    score += vectorScore;
+    
+    return score;
+  }
+  
+  private static parseHeader(data: Buffer, offset: number): SNESHeader {
+    // Read title (21 bytes)
+    const titleBytes = data.slice(offset, offset + 21);
+    const title = titleBytes.toString('ascii').replace(/\0+$/, '');
+    
+    return {
+      title,
+      mapMode: data[offset + 0x15],
+      cartridgeType: data[offset + 0x16],
+      romSize: data[offset + 0x17],
+      ramSize: data[offset + 0x18],
+      countryCode: data[offset + 0x19],
+      licenseCode: data[offset + 0x1A],
+      versionNumber: data[offset + 0x1B],
+      checksum: data.readUInt16LE(offset + 0x1C),
+      complement: data.readUInt16LE(offset + 0x1E),
+      nativeVectors: {
+        cop: data.readUInt16LE(offset + 0x24),
+        brk: data.readUInt16LE(offset + 0x26),
+        abort: data.readUInt16LE(offset + 0x28),
+        nmi: data.readUInt16LE(offset + 0x2A),
+        reset: data.readUInt16LE(offset + 0x2C),
+        irq: data.readUInt16LE(offset + 0x2E),
+      },
+      emulationVectors: {
+        cop: data.readUInt16LE(offset + 0x34),
+        brk: data.readUInt16LE(offset + 0x36),
+        abort: data.readUInt16LE(offset + 0x38),
+        nmi: data.readUInt16LE(offset + 0x3A),
+        reset: data.readUInt16LE(offset + 0x3C),
+        irq: data.readUInt16LE(offset + 0x3E),
+      }
+    };
+  }
+  
+  private static getROMSize(romSizeByte: number): number {
+    // ROM size is 2^romSizeByte KB
+    return (1 << romSizeByte) * 1024;
+  }
+  
+  private static getSpecialChipName(cartridgeType: CartridgeType): string | undefined {
+    const chipNames: Partial<Record<CartridgeType, string>> = {
+      [CartridgeType.SA1]: 'SA-1 Super Accelerator',
+      [CartridgeType.SuperFX]: 'SuperFX Graphics Support Unit',
+      [CartridgeType.DSP1]: 'DSP-1 Digital Signal Processor',
+      [CartridgeType.DSP2]: 'DSP-2 Digital Signal Processor',
+      [CartridgeType.DSP3]: 'DSP-3 Digital Signal Processor',
+      [CartridgeType.DSP4]: 'DSP-4 Digital Signal Processor',
+      [CartridgeType.CX4]: 'Capcom CX4 Math Coprocessor',
+      [CartridgeType.ST010]: 'Seta ST010 Graphics Processor',
+      [CartridgeType.ST011]: 'Seta ST011 Graphics Processor',
+      [CartridgeType.SPC7110]: 'SPC7110 Data Decompression',
+      [CartridgeType.SDD1]: 'S-DD1 Data Decompression',
+      [CartridgeType.SRTC]: 'S-RTC Real-Time Clock',
+      [CartridgeType.OBC1]: 'OBC-1 Metal Combat Support',
+      [CartridgeType.MSU1]: 'MSU-1 Audio Enhancement',
+      [CartridgeType.BSX]: 'BSX Satellaview',
+      // Standard types don't have special chips
+      [CartridgeType.LoROM]: undefined,
+      [CartridgeType.HiROM]: undefined,
+      [CartridgeType.ExLoROM]: undefined,
+      [CartridgeType.ExHiROM]: undefined,
+      [CartridgeType.Unknown]: undefined
+    } as const;
+    
+    return chipNames[cartridgeType];
+  }
+  
+  static getRomOffset(address: number, cartridgeInfo: CartridgeInfo, romSize?: number): number {
+    const isHiRom = cartridgeInfo.type === CartridgeType.HiROM || 
+                    cartridgeInfo.type === CartridgeType.ExHiROM;
+    
+    return this.getRomOffsetWithWrapping(address, isHiRom, romSize || cartridgeInfo.romSize);
+  }
+  
+  private static getRomOffsetWithWrapping(address: number, isHiRom: boolean, romSize: number): number {
+    let romOffset: number;
+    
+    if (isHiRom) {
+      romOffset = this.calculateHiROMOffset(address);
+    } else {
+      romOffset = this.calculateLoROMOffset(address);
+    }
+    
+    // Apply bank wrapping for ROM size
+    if (romOffset >= 0) {
+      return romOffset % romSize;
+    }
+    
+    throw new Error(`Invalid address for ROM mapping: $${address.toString(16).toUpperCase()}`);
+  }
+  
+  private static calculateHiROMOffset(address: number): number {
+    const bank = (address >> 16) & 0xFF;
+    const offset = address & 0xFFFF;
+    
+    // Banks C0-FF: Direct ROM mapping (64KB per bank)
+    if (bank >= 0xC0) {
+      return ((bank - 0xC0) * 0x10000) + offset;
+    }
+    
+    // Banks 40-7F: Direct ROM mapping (64KB per bank)  
+    if (bank >= 0x40 && bank <= 0x7F) {
+      return ((bank - 0x40) * 0x10000) + offset;
+    }
+    
+    // Banks 80-BF: Mirror of 00-3F at $8000-$FFFF
+    if (bank >= 0x80 && bank <= 0xBF && offset >= 0x8000) {
+      return ((bank - 0x80) * 0x8000) + (offset - 0x8000);
+    }
+    
+    // Banks 00-3F: ROM at $8000-$FFFF
+    if (bank <= 0x3F && offset >= 0x8000) {
+      return (bank * 0x8000) + (offset - 0x8000);
+    }
+    
+    // Bank 00: Direct mapping for low addresses
+    if (bank === 0x00 && offset < 0x8000) {
+      return offset;
+    }
+    
+    return -1; // Invalid mapping
+  }
+  
+  private static calculateLoROMOffset(address: number): number {
+    const bank = (address >> 16) & 0xFF;
+    const offset = address & 0xFFFF;
+    
+    // Banks 80-FF: FastROM mirror at $8000-$FFFF
+    if (bank >= 0x80 && offset >= 0x8000) {
+      return ((bank - 0x80) * 0x8000) + (offset - 0x8000);
+    }
+    
+    // Banks 00-7F: ROM at $8000-$FFFF
+    if (bank <= 0x7F && offset >= 0x8000) {
+      return (bank * 0x8000) + (offset - 0x8000);
+    }
+    
+    // Bank 00: Direct mapping for low addresses
+    if (bank === 0x00 && offset < 0x8000) {
+      return offset;
+    }
+    
+    return -1; // Invalid mapping
+  }
+  
+  // Legacy method for backward compatibility
+  static getRomOffsetLegacy(address: number, isHiRom: boolean): number {
+    return this.getRomOffsetWithWrapping(address, isHiRom, 0x400000); // Default 4MB
+  }
+  
+  static getPhysicalAddress(romOffset: number, isHiRom: boolean): number {
+    if (isHiRom) {
+      return 0xC00000 + romOffset;
+    } else {
+      const bank = Math.floor(romOffset / 0x8000) + 0x80;
+      const offset = (romOffset % 0x8000) + 0x8000;
+      return (bank << 16) | offset;
+    }
+  }
+}
