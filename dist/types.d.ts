@@ -71,5 +71,7 @@ export interface DisassemblerOptions {
     labels?: Map<number, string>;
     comments?: Map<number, string>;
     timingContext?: TimingContext;
+    enableValidation?: boolean;
+    enhanceComments?: boolean;
 }
 //# sourceMappingURL=types.d.ts.map

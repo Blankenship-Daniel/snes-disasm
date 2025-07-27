@@ -1,0 +1,27 @@
+{
+  "mcpServers": {
+    "snes9x": {
+      "command": "node",
+      "args": ["/Users/ship/Documents/code/snes9x/mcp-server"]
+    },
+    "snes-mcp-server": {
+      "command": "node",
+      "args": ["/Users/ship/Documents/code/snes-mcp-server/dist/index.js"]
+    },
+    "zelda3": {
+      "command": "node",
+      "args": ["/Users/ship/Documents/code/zelda3/mcp-server"]
+    },
+    "hf-mcp-server": {
+      "type": "http",
+      "url": "https://huggingface.co/mcp",
+      "headers": {
+        "Authorization": "Bearer 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"
+      }
+    },
+    "exa": {
+      "type": "http",
+      "url": "https://server.smithery.ai/exa/mcp?api_key=2834dd37-cdb7-4d73-88aa-6c50fec9dd11&profile=witty-mammal-ckwZBi"
+    }
+  }
+}

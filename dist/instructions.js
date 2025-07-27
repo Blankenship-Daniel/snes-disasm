@@ -90,6 +90,7 @@ exports.INSTRUCTION_SET = new Map([
     [0xC1, { opcode: 0xC1, mnemonic: 'CMP', addressingMode: types_1.AddressingMode.DirectIndirectX, bytes: 2, cycles: 6 }],
     [0xD1, { opcode: 0xD1, mnemonic: 'CMP', addressingMode: types_1.AddressingMode.DirectIndirectY, bytes: 2, cycles: 5 }],
     [0xC7, { opcode: 0xC7, mnemonic: 'CMP', addressingMode: types_1.AddressingMode.DirectIndirectLongY, bytes: 2, cycles: 6 }],
+    [0xD7, { opcode: 0xD7, mnemonic: 'CMP', addressingMode: types_1.AddressingMode.DirectIndirectLongY, bytes: 2, cycles: 6 }],
     [0xD2, { opcode: 0xD2, mnemonic: 'CMP', addressingMode: types_1.AddressingMode.DirectIndirect, bytes: 2, cycles: 5 }],
     [0xC3, { opcode: 0xC3, mnemonic: 'CMP', addressingMode: types_1.AddressingMode.StackRelative, bytes: 2, cycles: 4 }],
     [0xD3, { opcode: 0xD3, mnemonic: 'CMP', addressingMode: types_1.AddressingMode.StackRelativeIndirectIndexed, bytes: 2, cycles: 7 }],
@@ -140,12 +141,14 @@ exports.INSTRUCTION_SET = new Map([
     [0x4C, { opcode: 0x4C, mnemonic: 'JMP', addressingMode: types_1.AddressingMode.Absolute, bytes: 3, cycles: 3 }],
     [0x6C, { opcode: 0x6C, mnemonic: 'JMP', addressingMode: types_1.AddressingMode.AbsoluteIndirect, bytes: 3, cycles: 5 }],
     [0x7C, { opcode: 0x7C, mnemonic: 'JMP', addressingMode: types_1.AddressingMode.AbsoluteIndexedIndirect, bytes: 3, cycles: 6 }],
-    [0x5C, { opcode: 0x5C, mnemonic: 'JMP', addressingMode: types_1.AddressingMode.AbsoluteLong, bytes: 4, cycles: 4 }],
-    [0xDC, { opcode: 0xDC, mnemonic: 'JMP', addressingMode: types_1.AddressingMode.AbsoluteIndirectLong, bytes: 3, cycles: 6 }],
+    // JML - Jump Long
+    [0x5C, { opcode: 0x5C, mnemonic: 'JML', addressingMode: types_1.AddressingMode.AbsoluteLong, bytes: 4, cycles: 4 }],
+    [0xDC, { opcode: 0xDC, mnemonic: 'JML', addressingMode: types_1.AddressingMode.AbsoluteIndirectLong, bytes: 3, cycles: 6 }],
     // JSR - Jump to Subroutine
     [0x20, { opcode: 0x20, mnemonic: 'JSR', addressingMode: types_1.AddressingMode.Absolute, bytes: 3, cycles: 6 }],
-    [0x22, { opcode: 0x22, mnemonic: 'JSR', addressingMode: types_1.AddressingMode.AbsoluteLong, bytes: 4, cycles: 8 }],
     [0xFC, { opcode: 0xFC, mnemonic: 'JSR', addressingMode: types_1.AddressingMode.AbsoluteIndexedIndirect, bytes: 3, cycles: 8 }],
+    // JSL - Jump to Subroutine Long
+    [0x22, { opcode: 0x22, mnemonic: 'JSL', addressingMode: types_1.AddressingMode.AbsoluteLong, bytes: 4, cycles: 8 }],
     // LDA - Load Accumulator
     [0xA9, { opcode: 0xA9, mnemonic: 'LDA', addressingMode: types_1.AddressingMode.Immediate, bytes: 2, cycles: (0, timing_1.createCycleInfo)(2, { m16: 1 }) }],
     [0xA5, { opcode: 0xA5, mnemonic: 'LDA', addressingMode: types_1.AddressingMode.ZeroPage, bytes: 2, cycles: 3 }],
@@ -157,6 +160,8 @@ exports.INSTRUCTION_SET = new Map([
     [0xBF, { opcode: 0xBF, mnemonic: 'LDA', addressingMode: types_1.AddressingMode.AbsoluteLongX, bytes: 4, cycles: 5 }],
     [0xA1, { opcode: 0xA1, mnemonic: 'LDA', addressingMode: types_1.AddressingMode.DirectIndirectX, bytes: 2, cycles: 6 }],
     [0xB1, { opcode: 0xB1, mnemonic: 'LDA', addressingMode: types_1.AddressingMode.DirectIndirectY, bytes: 2, cycles: 5 }],
+    [0xA7, { opcode: 0xA7, mnemonic: 'LDA', addressingMode: types_1.AddressingMode.DirectIndirectLongY, bytes: 2, cycles: 6 }],
+    [0xB7, { opcode: 0xB7, mnemonic: 'LDA', addressingMode: types_1.AddressingMode.DirectIndirectLongY, bytes: 2, cycles: 6 }],
     [0xA3, { opcode: 0xA3, mnemonic: 'LDA', addressingMode: types_1.AddressingMode.StackRelative, bytes: 2, cycles: 4 }],
     [0xB3, { opcode: 0xB3, mnemonic: 'LDA', addressingMode: types_1.AddressingMode.StackRelativeIndirectIndexed, bytes: 2, cycles: 7 }],
     // LDX - Load X Register
@@ -283,6 +288,8 @@ exports.INSTRUCTION_SET = new Map([
     [0x9F, { opcode: 0x9F, mnemonic: 'STA', addressingMode: types_1.AddressingMode.AbsoluteLongX, bytes: 4, cycles: 5 }],
     [0x81, { opcode: 0x81, mnemonic: 'STA', addressingMode: types_1.AddressingMode.DirectIndirectX, bytes: 2, cycles: 6 }],
     [0x91, { opcode: 0x91, mnemonic: 'STA', addressingMode: types_1.AddressingMode.DirectIndirectY, bytes: 2, cycles: 6 }],
+    [0x87, { opcode: 0x87, mnemonic: 'STA', addressingMode: types_1.AddressingMode.DirectIndirectLongY, bytes: 2, cycles: 6 }],
+    [0x97, { opcode: 0x97, mnemonic: 'STA', addressingMode: types_1.AddressingMode.DirectIndirectLongY, bytes: 2, cycles: 6 }],
     [0x83, { opcode: 0x83, mnemonic: 'STA', addressingMode: types_1.AddressingMode.StackRelative, bytes: 2, cycles: 4 }],
     [0x93, { opcode: 0x93, mnemonic: 'STA', addressingMode: types_1.AddressingMode.StackRelativeIndirectIndexed, bytes: 2, cycles: 7 }],
     // STP - Stop Processor

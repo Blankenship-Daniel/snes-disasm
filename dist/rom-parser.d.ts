@@ -34,6 +34,10 @@ export interface SNESRom {
     hasHeader: boolean;
     cartridgeInfo: CartridgeInfo;
     memoryRegions: MemoryRegion[];
+    isInterleaved?: boolean;
+    isSplitRom?: boolean;
+    isOverdumped?: boolean;
+    originalSize?: number;
 }
 export declare class RomParser {
     static parse(filePath: string): SNESRom;
@@ -47,5 +51,39 @@ export declare class RomParser {
     private static calculateLoROMOffset;
     static getRomOffsetLegacy(address: number, isHiRom: boolean): number;
     static getPhysicalAddress(romOffset: number, isHiRom: boolean): number;
+    /**
+     * Detect and handle split ROM files (multi-part dumps)
+     * Based on file naming conventions and size analysis
+     */
+    static detectSplitRom(filePath: string): string[];
+    /**
+     * Combine split ROM parts into single buffer
+     */
+    static combineSplitRom(splitParts: string[]): Buffer;
+    /**
+     * Detect interleaved ROM format
+     * Common in older ROM dumps where odd/even bytes are swapped
+     */
+    static detectInterleavedFormat(data: Buffer): boolean;
+    /**
+     * De-interleave ROM data (swap odd/even bytes)
+     */
+    static deInterleaveRom(data: Buffer): Buffer;
+    /**
+     * Detect overdumped ROMs (ROMs with extra data beyond the actual ROM size)
+     * Common in older dumps where ROMs were padded to standard sizes
+     */
+    static detectOverdump(data: Buffer, expectedSize: number): {
+        isOverdumped: boolean;
+        originalSize: number;
+    };
+    /**
+     * Remove overdump padding from ROM data
+     */
+    static removeOverdump(data: Buffer, originalSize: number): Buffer;
+    /**
+     * Enhanced ROM parsing with support for special formats
+     */
+    static parseAdvanced(filePath: string): SNESRom;
 }
 //# sourceMappingURL=rom-parser.d.ts.map

@@ -82,10 +82,13 @@ export function detectCartridgeType(mapMode: number, cartridgeType: number): Car
     case 0x34: case 0x35: return CartridgeType.SA1;
     case 0x43: case 0x45: return CartridgeType.SDD1;
     case 0x55: return CartridgeType.SRTC;
+    case 0xE3: return CartridgeType.BSX;        // BSX satellaview
+    case 0xE5: return CartridgeType.BSX;        // BSX satellaview with memory pack
     case 0xF3: return CartridgeType.CX4;
     case 0xF5: return CartridgeType.ST010;
     case 0xF6: return CartridgeType.ST011;
     case 0xF9: return CartridgeType.SPC7110;
+    case 0xFE: return CartridgeType.MSU1;       // MSU-1 audio enhancement
   }
   
   // Standard mapping modes
@@ -150,6 +153,12 @@ export function createMemoryLayout(cartridgeInfo: CartridgeInfo): MemoryRegion[]
       break;
     case CartridgeType.SuperFX:
       regions.push(...createSuperFXLayout(cartridgeInfo));
+      break;
+    case CartridgeType.BSX:
+      regions.push(...createBSXLayout(cartridgeInfo));
+      break;
+    case CartridgeType.MSU1:
+      regions.push(...createMSU1Layout(cartridgeInfo));
       break;
     default:
       // Default to LoROM layout for unknown types
@@ -353,6 +362,66 @@ function createSuperFXLayout(info: CartridgeInfo): MemoryRegion[] {
   });
   
   // ROM mapping (similar to LoROM)
+  regions.push(...createLoROMLayout(info));
+  
+  return regions;
+}
+
+function createBSXLayout(info: CartridgeInfo): MemoryRegion[] {
+  const regions: MemoryRegion[] = [];
+  
+  // BSX Satellaview memory layout
+  // Based on BSX documentation and SNES MCP server research
+  
+  // BSX Memory Pack area
+  regions.push({
+    start: 0x005000,
+    end: 0x005FFF,
+    type: 'RAM',
+    readable: true,
+    writable: true,
+    size: 0x1000,
+    speed: MemorySpeed.SlowROM,
+    description: 'BSX Memory Pack'
+  });
+  
+  // BSX registers
+  regions.push({
+    start: 0x002188,
+    end: 0x00218F,
+    type: 'IO',
+    readable: true,
+    writable: true,
+    size: 0x8,
+    speed: MemorySpeed.SlowROM,
+    description: 'BSX Registers'
+  });
+  
+  // ROM mapping (uses LoROM-style)
+  regions.push(...createLoROMLayout(info));
+  
+  return regions;
+}
+
+function createMSU1Layout(info: CartridgeInfo): MemoryRegion[] {
+  const regions: MemoryRegion[] = [];
+  
+  // MSU-1 audio enhancement layout
+  // Based on MSU-1 specification
+  
+  // MSU-1 registers
+  regions.push({
+    start: 0x002000,
+    end: 0x002007,
+    type: 'IO',
+    readable: true,
+    writable: true,
+    size: 0x8,
+    speed: MemorySpeed.SlowROM,
+    description: 'MSU-1 Audio Registers'
+  });
+  
+  // Standard ROM mapping (typically LoROM)
   regions.push(...createLoROMLayout(info));
   
   return regions;

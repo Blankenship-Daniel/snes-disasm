@@ -90,7 +90,14 @@ logs
 *.fig
 *.rom
 test-roms/
+roms/
 
 # Temporary files
 tmp/
 temp/
+
+dist/
+
+output/
+snes_games/
+.github/

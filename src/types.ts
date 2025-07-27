@@ -77,4 +77,6 @@ export interface DisassemblerOptions {
   labels?: Map<number, string>;
   comments?: Map<number, string>;
   timingContext?: TimingContext;
+  enableValidation?: boolean; // Enable SNES reference validation (default: true)
+  enhanceComments?: boolean; // Generate enhanced comments using reference data (default: true)
 }

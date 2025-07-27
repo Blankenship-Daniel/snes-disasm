@@ -301,6 +301,152 @@ class RomParser {
             return (bank << 16) | offset;
         }
     }
+    /**
+     * Detect and handle split ROM files (multi-part dumps)
+     * Based on file naming conventions and size analysis
+     */
+    static detectSplitRom(filePath) {
+        const splitParts = [filePath];
+        // Common split ROM naming patterns
+        const patterns = [
+            /(.+)\.part(\d+)\.smc$/i,
+            /(.+)\.(\d+)\.smc$/i,
+            /(.+)_(\d+)\.smc$/i,
+            /(.+)-(\d+)\.smc$/i
+        ];
+        for (const pattern of patterns) {
+            const match = filePath.match(pattern);
+            if (match) {
+                const baseName = match[1];
+                const partNum = parseInt(match[2]);
+                // Look for other parts
+                for (let i = 1; i <= 8; i++) { // Reasonable limit
+                    if (i === partNum)
+                        continue;
+                    const testPath = `${baseName}.part${i}.smc`;
+                    if (fs.existsSync(testPath)) {
+                        splitParts.push(testPath);
+                    }
+                }
+                break;
+            }
+        }
+        return splitParts.sort();
+    }
+    /**
+     * Combine split ROM parts into single buffer
+     */
+    static combineSplitRom(splitParts) {
+        const buffers = [];
+        for (const part of splitParts) {
+            const data = fs.readFileSync(part);
+            buffers.push(data);
+        }
+        return Buffer.concat(buffers);
+    }
+    /**
+     * Detect interleaved ROM format
+     * Common in older ROM dumps where odd/even bytes are swapped
+     */
+    static detectInterleavedFormat(data) {
+        // Check for interleaving by analyzing header patterns
+        // Interleaved ROMs often have garbled headers at standard locations
+        // Try standard header locations
+        const possibleOffsets = [0x7FC0, 0xFFC0, 0x81C0, 0x101C0];
+        for (const offset of possibleOffsets) {
+            if (offset + 0x20 >= data.length)
+                continue;
+            // Check if header makes sense when de-interleaved
+            const deInterleavedData = this.deInterleaveRom(data);
+            const score = this.scoreHeader(deInterleavedData, offset, false);
+            const originalScore = this.scoreHeader(data, offset, false);
+            if (score > originalScore + 2) { // Significant improvement
+                return true;
+            }
+        }
+        return false;
+    }
+    /**
+     * De-interleave ROM data (swap odd/even bytes)
+     */
+    static deInterleaveRom(data) {
+        const deInterleaved = Buffer.alloc(data.length);
+        for (let i = 0; i < data.length - 1; i += 2) {
+            deInterleaved[i] = data[i + 1]; // Even positions get odd bytes
+            deInterleaved[i + 1] = data[i]; // Odd positions get even bytes
+        }
+        return deInterleaved;
+    }
+    /**
+     * Detect overdumped ROMs (ROMs with extra data beyond the actual ROM size)
+     * Common in older dumps where ROMs were padded to standard sizes
+     */
+    static detectOverdump(data, expectedSize) {
+        if (data.length <= expectedSize) {
+            return { isOverdumped: false, originalSize: data.length };
+        }
+        // Check if extra data is just padding (zeros or repeated pattern)
+        const extraData = data.slice(expectedSize);
+        // Check for zero padding
+        const isZeroPadded = extraData.every(byte => byte === 0x00);
+        // Check for FF padding
+        const isFFPadded = extraData.every(byte => byte === 0xFF);
+        // Check for repeated pattern
+        let isRepeatedPattern = false;
+        if (extraData.length >= 4) {
+            const pattern = extraData.slice(0, 4);
+            isRepeatedPattern = true;
+            for (let i = 4; i < extraData.length; i += 4) {
+                const chunk = extraData.slice(i, i + 4);
+                if (!chunk.equals(pattern.slice(0, chunk.length))) {
+                    isRepeatedPattern = false;
+                    break;
+                }
+            }
+        }
+        const isOverdumped = isZeroPadded || isFFPadded || isRepeatedPattern;
+        return {
+            isOverdumped,
+            originalSize: isOverdumped ? expectedSize : data.length
+        };
+    }
+    /**
+     * Remove overdump padding from ROM data
+     */
+    static removeOverdump(data, originalSize) {
+        return data.slice(0, originalSize);
+    }
+    /**
+     * Enhanced ROM parsing with support for special formats
+     */
+    static parseAdvanced(filePath) {
+        // Check for split ROM files
+        const splitParts = this.detectSplitRom(filePath);
+        const isSplitRom = splitParts.length > 1;
+        // Load ROM data (combine if split)
+        let data = isSplitRom ? this.combineSplitRom(splitParts) : fs.readFileSync(filePath);
+        // Check for interleaved format
+        const isInterleaved = this.detectInterleavedFormat(data);
+        if (isInterleaved) {
+            data = this.deInterleaveRom(data);
+        }
+        // Parse basic ROM structure
+        const basicRom = this.parse(filePath);
+        // Check for overdump
+        const expectedSize = this.getROMSize(basicRom.header.romSize);
+        const overdumpInfo = this.detectOverdump(data, expectedSize);
+        if (overdumpInfo.isOverdumped) {
+            data = this.removeOverdump(data, overdumpInfo.originalSize);
+        }
+        return {
+            ...basicRom,
+            data,
+            isInterleaved,
+            isSplitRom,
+            isOverdumped: overdumpInfo.isOverdumped,
+            originalSize: overdumpInfo.originalSize
+        };
+    }
 }
 exports.RomParser = RomParser;
 //# sourceMappingURL=rom-parser.js.map

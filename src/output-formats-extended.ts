@@ -12,7 +12,7 @@
 
 import { DisassemblyLine } from './types';
 import { SNESRom } from './rom-parser';
-import { OutputFormatter, SymbolTableEntry, CrossReference, OutputOptions } from './output-formatters';
+import { OutputFormatter, SymbolTableEntry, CrossReference, OutputOptions, CA65Formatter, WLADXFormatter, BassFormatter } from './output-formatters';
 
 export class HTMLFormatter extends OutputFormatter {
   getName(): string {
@@ -560,4 +560,4 @@ export class ExtendedOutputFormatterFactory {
 }
 
 // Re-export classes from output-formatters.ts for convenience
-export { CA65Formatter, WLADXFormatter, BassFormatter } from './output-formatters';
+export { CA65Formatter, WLADXFormatter, BassFormatter, OutputFormatter, SymbolTableEntry, CrossReference, OutputOptions } from './output-formatters';
