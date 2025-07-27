@@ -48,7 +48,9 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
   constructor(romFile: string, options: EnhancedDisassemblyOptions) {
     super(romFile);
     this.options = options;
-    this.bankHandler = new BankHandler();
+    // Get cartridge info from the parent class's ROM
+    const romInfo = this.getRomInfo();
+    this.bankHandler = new BankHandler(romInfo.cartridgeInfo);
     this.analysis = {
       vectors: [],
       functions: [],
@@ -74,10 +76,17 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     this.analysisOptions = options;
   }
 
-  async analyze(): Promise<void> {
+  analyze(): { functions: number[], data: number[] } {
     // Perform base analysis
-    super.analyze();
+    const baseAnalysis = super.analyze();
 
+    // Trigger enhanced analysis asynchronously (don't await to match signature)
+    this.performEnhancedAnalysis();
+
+    return baseAnalysis;
+  }
+
+  private async performEnhancedAnalysis(): Promise<void> {
     // Enhanced analysis using MCP insights
     if (this.options.extractVectors) {
       await this.extractInterruptVectors();
@@ -103,8 +112,9 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
   private async extractInterruptVectors(): Promise<void> {
     try {
       // Use MCP server to get vector information
+      const romInfo = this.getRomInfo();
       const vectorInfo = await callMCPTool('extract_code', {
-        data: Array.from(this.romData.slice(-0x20)), // Last 32 bytes typically contain vectors
+        data: Array.from(romInfo.data.slice(-0x20)), // Last 32 bytes typically contain vectors
         format: 'ca65',
         extractVectors: true,
         bankAware: this.options.bankAware
@@ -127,8 +137,9 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
   }
 
   private extractVectorsFallback(): void {
-    const romSize = this.romData.length;
-    const vectorArea = this.romData.slice(romSize - 0x20);
+    const romInfo = this.getRomInfo();
+    const romSize = romInfo.data.length;
+    const vectorArea = romInfo.data.slice(romSize - 0x20);
     
     const vectors = [
       { name: 'RESET', offset: 0x1C },
@@ -153,14 +164,15 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
   }
 
   private async analyzeBankLayout(): Promise<void> {
-    const romSize = this.romData.length;
+    const romInfo = this.getRomInfo();
+    const romSize = romInfo.data.length;
     const bankSize = 0x8000; // 32KB banks for LoROM
     const numBanks = Math.ceil(romSize / bankSize);
 
     for (let bank = 0; bank < numBanks; bank++) {
       const bankStart = bank * bankSize;
       const bankEnd = Math.min(bankStart + bankSize, romSize);
-      const bankData = this.romData.slice(bankStart, bankEnd);
+      const bankData = romInfo.data.slice(bankStart, bankEnd);
 
       // Analyze bank content using pattern recognition
       const bankType = this.classifyBankContent(bankData, bank);
@@ -225,8 +237,9 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
       const analysisChunks = [];
       const chunkSize = 0x8000;
 
-      for (let offset = 0; offset < this.romData.length; offset += chunkSize) {
-        const chunk = this.romData.slice(offset, Math.min(offset + chunkSize, this.romData.length));
+      const romInfo = this.getRomInfo();
+      for (let offset = 0; offset < romInfo.data.length; offset += chunkSize) {
+        const chunk = romInfo.data.slice(offset, Math.min(offset + chunkSize, romInfo.data.length));
         analysisChunks.push({
           data: Array.from(chunk),
           offset,
@@ -262,9 +275,10 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
         const target = data[i + 1] | (data[i + 2] << 8);
         const targetOffset = target - 0x8000 + chunk.offset;
         
-        if (targetOffset >= 0 && targetOffset < this.romData.length) {
+        const romInfo = this.getRomInfo();
+        if (targetOffset >= 0 && targetOffset < romInfo.data.length) {
           // Check if this looks like a function entry
-          const functionBytes = this.romData.slice(targetOffset, targetOffset + 32);
+          const functionBytes = romInfo.data.slice(targetOffset, targetOffset + 32);
           if (this.isLikelyFunctionEntry(functionBytes)) {
             const functionSize = this.estimateFunctionSize(targetOffset);
             functions.push({
@@ -312,8 +326,9 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     let offset = startOffset;
     const maxSize = 0x200; // Reasonable maximum function size
 
-    while (size < maxSize && offset < this.romData.length) {
-      const byte = this.romData[offset];
+    const romInfo = this.getRomInfo();
+    while (size < maxSize && offset < romInfo.data.length) {
+      const byte = romInfo.data[offset];
       
       // Look for function end patterns
       if (byte === 0x60 || byte === 0x40) { // RTS or RTI
@@ -347,13 +362,18 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
       let labelName = func.name;
       
       // Analyze function content to provide better names
-      const functionData = this.romData.slice(func.offset, func.offset + Math.min(func.size, 64));
-      const analysis = this.analyzeFunctionContent(functionData);
-      
-      if (analysis.type) {
-        labelName = `${analysis.type}_${func.address.toString(16).toUpperCase()}`;
-        func.type = analysis.type;
-        func.description = analysis.description;
+      const romInfo = this.getRomInfo();
+      // Calculate ROM offset from address (assuming LoROM mapping for now)
+      const romOffset = func.address >= 0x8000 ? func.address - 0x8000 : 0;
+      if (romOffset < romInfo.data.length) {
+        const functionData = romInfo.data.slice(romOffset, romOffset + Math.min(func.size, 64));
+        const analysis = this.analyzeFunctionContent(functionData);
+        
+        if (analysis.type) {
+          labelName = `${analysis.type}_${func.address.toString(16).toUpperCase()}`;
+          func.type = analysis.type;
+          func.description = analysis.description;
+        }
       }
       
       func.name = labelName;
@@ -385,7 +405,8 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     const structures = [];
     
     // Look for pointer tables
-    for (let offset = 0; offset < this.romData.length - 32; offset += 2) {
+    const romInfo = this.getRomInfo();
+    for (let offset = 0; offset < romInfo.data.length - 32; offset += 2) {
       if (this.isLikelyPointerTable(offset)) {
         const tableSize = this.getPointerTableSize(offset);
         structures.push({
@@ -409,8 +430,9 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     // Check if we have consecutive valid ROM addresses
     let validPointers = 0;
     
+    const romInfo = this.getRomInfo();
     for (let i = 0; i < 8; i++) {
-      const ptr = this.romData.readUInt16LE(offset + i * 2);
+      const ptr = romInfo.data.readUInt16LE(offset + i * 2);
       if (ptr >= 0x8000 && ptr <= 0xFFFF) {
         validPointers++;
       }
@@ -422,8 +444,9 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
   private getPointerTableSize(offset: number): number {
     let size = 0;
     
-    while (offset + size * 2 < this.romData.length - 2) {
-      const ptr = this.romData.readUInt16LE(offset + size * 2);
+    const romInfo = this.getRomInfo();
+    while (offset + size * 2 < romInfo.data.length - 2) {
+      const ptr = romInfo.data.readUInt16LE(offset + size * 2);
       if (ptr < 0x8000 || ptr > 0xFFFF) {
         break;
       }
@@ -440,8 +463,9 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     const regions = [];
     
     // Look for patterns typical of graphics data
-    for (let offset = 0x8000; offset < this.romData.length - 0x400; offset += 0x100) {
-      const chunk = this.romData.slice(offset, offset + 0x400);
+    const romInfo = this.getRomInfo();
+    for (let offset = 0x8000; offset < romInfo.data.length - 0x400; offset += 0x100) {
+      const chunk = romInfo.data.slice(offset, offset + 0x400);
       
       if (this.isLikelyGraphicsData(chunk)) {
         const regionEnd = this.findGraphicsRegionEnd(offset);
@@ -477,15 +501,16 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
   private findGraphicsRegionEnd(start: number): number {
     let end = start + 0x400;
     
-    while (end < this.romData.length - 0x100) {
-      const chunk = this.romData.slice(end, end + 0x100);
+    const romInfo = this.getRomInfo();
+    while (end < romInfo.data.length - 0x100) {
+      const chunk = romInfo.data.slice(end, end + 0x100);
       if (!this.isLikelyGraphicsData(chunk)) {
         break;
       }
       end += 0x100;
     }
     
-    return Math.min(end, this.romData.length);
+    return Math.min(end, romInfo.data.length);
   }
 
   private async recognizeGamePatterns(): Promise<void> {
@@ -518,9 +543,10 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
 
   private findDMAPatterns(): void {
     // Look for DMA setup patterns (0x43xx register writes)
-    for (let offset = 0; offset < this.romData.length - 8; offset++) {
-      if (this.romData[offset] === 0x8D) { // STA absolute
-        const addr = this.romData.readUInt16LE(offset + 1);
+    const romInfo = this.getRomInfo();
+    for (let offset = 0; offset < romInfo.data.length - 8; offset++) {
+      if (romInfo.data[offset] === 0x8D) { // STA absolute
+        const addr = romInfo.data.readUInt16LE(offset + 1);
         if (addr >= 0x4300 && addr <= 0x437F) {
           // Found DMA register write
           this.analysis.functions.push({
@@ -550,9 +576,10 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
   }
 
   private findRegisterAccess(address: number, name: string): void {
-    for (let offset = 0; offset < this.romData.length - 3; offset++) {
-      if (this.romData[offset] === 0x8D) { // STA absolute
-        const addr = this.romData.readUInt16LE(offset + 1);
+    const romInfo = this.getRomInfo();
+    for (let offset = 0; offset < romInfo.data.length - 3; offset++) {
+      if (romInfo.data[offset] === 0x8D) { // STA absolute
+        const addr = romInfo.data.readUInt16LE(offset + 1);
         if (addr === address) {
           // Found register access - could be part of a larger initialization routine
           this.stats.crossReferences++;
@@ -563,10 +590,11 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
 
   private findGameLoopPatterns(): void {
     // Look for infinite loop patterns that might be main game loops
-    for (let offset = 0; offset < this.romData.length - 6; offset++) {
+    const romInfo = this.getRomInfo();
+    for (let offset = 0; offset < romInfo.data.length - 6; offset++) {
       // Look for patterns like: loop: ... JMP loop
-      if (this.romData[offset] === 0x4C) { // JMP absolute
-        const target = this.romData.readUInt16LE(offset + 1);
+      if (romInfo.data[offset] === 0x4C) { // JMP absolute
+        const target = romInfo.data.readUInt16LE(offset + 1);
         const currentAddr = offset + 0x8000;
         
         // If jumping backwards by a reasonable amount, might be a game loop

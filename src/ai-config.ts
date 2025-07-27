@@ -295,22 +295,26 @@ export class AIConfigManager {
     }
     
     // Merge model configurations
-    ['graphicsClassification', 'textClassification', 'audioClassification'].forEach(key => {
+    const modelKeys = ['graphicsClassification', 'textClassification', 'audioClassification'] as const;
+    modelKeys.forEach(key => {
       if (userConfig[key]) {
-        merged[key as keyof AIFeatureConfig] = { 
-          ...merged[key as keyof AIFeatureConfig], 
+        const defaultValue = merged[key] as Record<string, any>;
+        merged[key] = { 
+          ...defaultValue, 
           ...userConfig[key] 
-        };
+        } as any;
       }
     });
     
     // Merge feature configurations
-    ['namingSuggestions', 'documentationGeneration', 'performance', 'fallback'].forEach(key => {
+    const featureKeys = ['namingSuggestions', 'documentationGeneration', 'performance', 'fallback'] as const;
+    featureKeys.forEach(key => {
       if (userConfig[key]) {
-        merged[key as keyof AIFeatureConfig] = { 
-          ...merged[key as keyof AIFeatureConfig], 
+        const defaultValue = merged[key] as Record<string, any>;
+        merged[key] = { 
+          ...defaultValue, 
           ...userConfig[key] 
-        };
+        } as any;
       }
     });
     

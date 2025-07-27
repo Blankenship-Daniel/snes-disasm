@@ -7,8 +7,8 @@ import { CartridgeType, CartridgeInfo } from './cartridge-types';
 export class BankHandler {
   private cartridgeInfo: CartridgeInfo;
   private mappingMode: 'LoROM' | 'HiROM' | 'ExLoROM' | 'ExHiROM';
-  private bankMask: number;
-  private addressMask: number;
+  private bankMask: number = 0x7F;
+  private addressMask: number = 0x7FFF;
 
   constructor(cartridgeInfo: CartridgeInfo) {
     this.cartridgeInfo = cartridgeInfo;
@@ -421,17 +421,26 @@ export class BankHandler {
   /**
    * Get bank information for an address
    */
-  public getBankInfo(address: number): { bank: number; offset: number; type: string } {
+  public getBankInfo(address: number): { bank: number; offset: number; type: string; physicalAddress?: number } {
     const bank = (address >> 16) & 0xFF;
     const offset = address & 0xFFFF;
     
     const ranges = this.getValidAddressRanges();
     const range = ranges.find(r => address >= r.start && address <= r.end);
     
+    let physicalAddress: number | undefined;
+    try {
+      physicalAddress = this.addressToRomOffset(address);
+    } catch (error) {
+      // Address is not mappable to ROM
+      physicalAddress = undefined;
+    }
+    
     return {
       bank,
       offset,
-      type: range?.type || 'INVALID'
+      type: range?.type || 'INVALID',
+      physicalAddress
     };
   }
 

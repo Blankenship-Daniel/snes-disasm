@@ -7,7 +7,7 @@
 
 import { promises as fs } from 'fs';
 import path from 'path';
-import { AssetExtractor } from './asset-extractor';
+import { AssetExtractor, GraphicsFormat } from './asset-extractor';
 import { CLIOptions } from './disassembly-handler';
 
 export async function extractAssets(romFile: string, options: CLIOptions, outputDir: string): Promise<void> {
@@ -24,7 +24,7 @@ export async function extractAssets(romFile: string, options: CLIOptions, output
     
     // Parse asset types to extract
     const assetTypes = (options.assetTypes || 'graphics,audio,text').split(',').map(t => t.trim());
-    const graphicsFormats = (options.assetFormats || '4bpp').split(',').map(f => f.trim() as any);
+    const graphicsFormats = (options.assetFormats || '4bpp').split(',').map(f => f.trim() as GraphicsFormat);
     
     const baseName = path.basename(romFile, path.extname(romFile));
     const assetDir = path.join(outputDir, `${baseName}_assets`);
@@ -109,7 +109,7 @@ async function extractGraphicsAssets(
     
     for (const region of graphicsRegions) {
       const regionData = romData.slice(region.start, region.end);
-      const tiles = await graphicsExtractor.extractTiles(regionData, format, region.start);
+      const tiles = await graphicsExtractor.extractTiles(regionData, format as GraphicsFormat, region.start);
       
       if (tiles.length > 0) {
         // Save tile data as JSON with enhanced metadata
@@ -201,7 +201,7 @@ async function extractPaletteData(
   ];
   
   let totalPalettes = 0;
-  const allPalettes = [];
+  const allPalettes: any[] = [];
   
   for (const region of paletteRegions) {
     if (region.start < romData.length) {
@@ -279,7 +279,7 @@ async function extractAudioAssets(
       
       // Extract music sequences if available
       try {
-        const sequences = await audioExtractor.extractMusicSequences(audioData, region.start);
+        const sequences = await audioExtractor.extractSequences(audioData, region.start);
         sequences.forEach((sequence: any) => {
           sequence.region = region.type;
           allSequences.push(sequence);
@@ -292,7 +292,7 @@ async function extractAudioAssets(
       }
       
       if (verbose && (samples.length > 0 || allSequences.length > 0)) {
-        console.log(`    - ${region.type}: ${samples.length} samples, ${sequences.length || 0} sequences`);
+        console.log(`    - ${region.type}: ${samples.length} samples, ${allSequences.length || 0} sequences`);
       }
     }
   }

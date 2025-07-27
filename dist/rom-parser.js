@@ -217,11 +217,11 @@ class RomParser {
             [cartridge_types_1.CartridgeType.OBC1]: 'OBC-1 Metal Combat Support',
             [cartridge_types_1.CartridgeType.MSU1]: 'MSU-1 Audio Enhancement',
             [cartridge_types_1.CartridgeType.BSX]: 'BSX Satellaview',
-            // Standard types don't have special chips
-            [cartridge_types_1.CartridgeType.LoROM]: undefined,
-            [cartridge_types_1.CartridgeType.HiROM]: undefined,
-            [cartridge_types_1.CartridgeType.ExLoROM]: undefined,
-            [cartridge_types_1.CartridgeType.ExHiROM]: undefined,
+            // Standard types with potential special chip support
+            [cartridge_types_1.CartridgeType.LoROM]: 'Possible enhancement chips',
+            [cartridge_types_1.CartridgeType.HiROM]: 'Possible enhancement chips',
+            [cartridge_types_1.CartridgeType.ExLoROM]: 'Possible enhancement chips',
+            [cartridge_types_1.CartridgeType.ExHiROM]: 'Possible enhancement chips',
             [cartridge_types_1.CartridgeType.Unknown]: undefined
         };
         return chipNames[cartridgeType];

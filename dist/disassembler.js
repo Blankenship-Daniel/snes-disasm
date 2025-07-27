@@ -2,6 +2,7 @@
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.SNESDisassembler = void 0;
 const decoder_1 = require("./decoder");
+const rom_header_parser_1 = require("./rom-header-parser");
 const rom_parser_1 = require("./rom-parser");
 const analysis_engine_1 = require("./analysis-engine");
 const output_formats_extended_1 = require("./output-formats-extended");
@@ -11,6 +12,9 @@ const snes_reference_tables_1 = require("./snes-reference-tables");
 class SNESDisassembler {
     constructor(romPath, options = {}) {
         this.rom = rom_parser_1.RomParser.parse(romPath);
+        // Initialize enhanced ROM parsing for bank switching
+        const mappingMode = rom_header_parser_1.RomHeaderParser.detectMappingMode(this.rom.cartridgeInfo);
+        console.log(`Detected Mapping Mode: ${mappingMode}`);
         this.decoder = new decoder_1.InstructionDecoder();
         this.labels = options.labels || new Map();
         this.comments = options.comments || new Map();

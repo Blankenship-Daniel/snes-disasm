@@ -20,6 +20,7 @@ export interface Tile {
   bitsPerPixel: number;
   paletteIndex?: number;
   address: number;
+  metadata?: Record<string, any>;
   aiClassification?: GraphicsClassification;
 }
 

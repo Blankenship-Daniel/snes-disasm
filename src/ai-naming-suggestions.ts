@@ -99,4 +99,398 @@ export class AINameSuggester {
    * Generate contextual names using AI pattern recognition
    */
   private async generateContextualSuggestions(context: AssetContext): Promise<NamingSuggestion[]> {
-    const suggestions: NamingSuggestion[] = [];\n    \n    // Graphics naming\n    if (context.classification?.graphics) {\n      const graphics = context.classification.graphics;\n      suggestions.push({\n        name: this.generateGraphicsName(graphics, context),\n        confidence: graphics.confidence,\n        reasoning: `Graphics classification detected ${graphics.type} with ${(graphics.confidence * 100).toFixed(1)}% confidence`,\n        category: 'sprite',\n        alternatives: this.generateGraphicsAlternatives(graphics, context),\n        conventions: ['type_based', 'size_aware']\n      });\n    }\n    \n    // Audio naming\n    if (context.classification?.audio) {\n      const audio = context.classification.audio;\n      suggestions.push({\n        name: this.generateAudioName(audio, context),\n        confidence: audio.confidence,\n        reasoning: `Audio classification detected ${audio.type} with ${(audio.confidence * 100).toFixed(1)}% confidence`,\n        category: 'audio',\n        alternatives: this.generateAudioAlternatives(audio, context),\n        conventions: ['snes_audio', 'channel_aware']\n      });\n    }\n    \n    // Text naming\n    if (context.classification?.text) {\n      const text = context.classification.text;\n      suggestions.push({\n        name: this.generateTextName(text, context),\n        confidence: text.confidence,\n        reasoning: `Text classification detected ${text.type} with ${(text.confidence * 100).toFixed(1)}% confidence`,\n        category: 'text',\n        alternatives: this.generateTextAlternatives(text, context),\n        conventions: ['text_type', 'encoding_aware']\n      });\n    }\n    \n    return suggestions;\n  }\n  \n  private generateGraphicsName(graphics: GraphicsClassification, context: AssetContext): string {\n    const bankHex = context.bank.toString(16).toUpperCase().padStart(2, '0');\n    const offsetHex = context.offset.toString(16).toUpperCase().padStart(4, '0');\n    \n    switch (graphics.type) {\n      case 'sprite':\n        return `sprite_${bankHex}_${offsetHex}`;\n      case 'tile':\n        return `tile_${graphics.format}_${bankHex}_${offsetHex}`;\n      case 'background':\n        return `bg_layer_${bankHex}_${offsetHex}`;\n      case 'ui':\n        return `ui_element_${bankHex}_${offsetHex}`;\n      case 'font':\n        return `font_${graphics.format}_${bankHex}_${offsetHex}`;\n      case 'palette':\n        return `palette_${bankHex}_${offsetHex}`;\n      default:\n        return `graphics_${bankHex}_${offsetHex}`;\n    }\n  }\n  \n  private generateAudioName(audio: AudioClassification, context: AssetContext): string {\n    const bankHex = context.bank.toString(16).toUpperCase().padStart(2, '0');\n    const offsetHex = context.offset.toString(16).toUpperCase().padStart(4, '0');\n    \n    switch (audio.type) {\n      case 'brr_sample':\n        return `sample_brr_${bankHex}_${offsetHex}`;\n      case 'sequence':\n        return `music_seq_${bankHex}_${offsetHex}`;\n      case 'spc_code':\n        return `spc_driver_${bankHex}_${offsetHex}`;\n      case 'instrument':\n        return `instrument_${bankHex}_${offsetHex}`;\n      default:\n        return `audio_${bankHex}_${offsetHex}`;\n    }\n  }\n  \n  private generateTextName(text: TextClassification, context: AssetContext): string {\n    const bankHex = context.bank.toString(16).toUpperCase().padStart(2, '0');\n    const offsetHex = context.offset.toString(16).toUpperCase().padStart(4, '0');\n    \n    switch (text.type) {\n      case 'dialogue':\n        return `dialogue_${text.compression !== 'none' ? text.compression + '_' : ''}${bankHex}_${offsetHex}`;\n      case 'menu':\n        return `menu_text_${bankHex}_${offsetHex}`;\n      case 'item_name':\n        return `item_names_${bankHex}_${offsetHex}`;\n      case 'credits':\n        return `credits_text_${bankHex}_${offsetHex}`;\n      case 'code_comment':\n        return `debug_text_${bankHex}_${offsetHex}`;\n      default:\n        return `text_${bankHex}_${offsetHex}`;\n    }\n  }\n  \n  private generateGraphicsAlternatives(graphics: GraphicsClassification, context: AssetContext): string[] {\n    const base = this.generateGraphicsName(graphics, context);\n    const alternatives = [base];\n    \n    // Size-based alternatives\n    if (graphics.dimensions) {\n      alternatives.push(`${graphics.type}_${graphics.dimensions.width}x${graphics.dimensions.height}_data`);\n    }\n    \n    // Format-based alternatives\n    if (graphics.format) {\n      alternatives.push(`${graphics.type}_${graphics.format}_data`);\n    }\n    \n    // Index-based alternatives\n    const assetIndex = Math.floor(context.offset / 0x1000); // Rough index\n    alternatives.push(`${graphics.type}_${assetIndex.toString().padStart(3, '0')}`);\n    \n    return [...new Set(alternatives)];\n  }\n  \n  private generateAudioAlternatives(audio: AudioClassification, context: AssetContext): string[] {\n    const base = this.generateAudioName(audio, context);\n    const alternatives = [base];\n    \n    // Rate-based alternatives\n    if (audio.sampleRate) {\n      alternatives.push(`${audio.type}_${audio.sampleRate}hz`);\n    }\n    \n    // Channel-based alternatives\n    if (audio.channels) {\n      alternatives.push(`${audio.type}_${audio.channels}ch`);\n    }\n    \n    // Encoding-based alternatives\n    if (audio.encoding) {\n      alternatives.push(`${audio.type}_${audio.encoding}`);\n    }\n    \n    return [...new Set(alternatives)];\n  }\n  \n  private generateTextAlternatives(text: TextClassification, context: AssetContext): string[] {\n    const base = this.generateTextName(text, context);\n    const alternatives = [base];\n    \n    // Encoding-based alternatives\n    alternatives.push(`${text.type}_${text.encoding}`);\n    \n    // Compression-based alternatives\n    if (text.compression && text.compression !== 'none') {\n      alternatives.push(`${text.type}_compressed`);\n      alternatives.push(`${text.type}_${text.compression}`);\n    }\n    \n    return [...new Set(alternatives)];\n  }\n  \n  private applySNESConventions(context: AssetContext): NamingSuggestion[] {\n    return this.snesConventions.generateConventionalNames(context);\n  }\n  \n  private applyCustomPatterns(context: AssetContext, patterns: string[]): NamingSuggestion[] {\n    const suggestions: NamingSuggestion[] = [];\n    \n    for (const pattern of patterns) {\n      const name = this.applyPattern(pattern, context);\n      if (name) {\n        suggestions.push({\n          name,\n          confidence: 0.6,\n          reasoning: `Generated from custom pattern: ${pattern}`,\n          category: this.inferCategoryFromContext(context),\n          alternatives: [],\n          conventions: ['custom_pattern']\n        });\n      }\n    }\n    \n    return suggestions;\n  }\n  \n  private applyPattern(pattern: string, context: AssetContext): string | null {\n    let result = pattern;\n    \n    // Replace common placeholders\n    const replacements: Record<string, string> = {\n      '{{bank}}': context.bank.toString(16).toUpperCase().padStart(2, '0'),\n      '{{offset}}': context.offset.toString(16).toUpperCase().padStart(4, '0'),\n      '{{size}}': context.size.toString(),\n      '{{index}}': Math.floor(context.offset / 0x1000).toString().padStart(3, '0'),\n      '{{type}}': context.classification?.graphics?.type || 'unknown',\n      '{{layer}}': '0', // Default layer\n      '{{asset_type}}': this.inferCategoryFromContext(context),\n      '{{game}}': context.gameId || 'unknown'\n    };\n    \n    for (const [placeholder, value] of Object.entries(replacements)) {\n      result = result.replace(new RegExp(placeholder, 'g'), value);\n    }\n    \n    return result;\n  }\n  \n  private applyGameSpecificNaming(context: AssetContext): NamingSuggestion[] {\n    return this.gameDatabase.generateGameSpecificNames(context);\n  }\n  \n  private generateBasicSuggestions(context: AssetContext): NamingSuggestion[] {\n    const bankHex = context.bank.toString(16).toUpperCase().padStart(2, '0');\n    const offsetHex = context.offset.toString(16).toUpperCase().padStart(4, '0');\n    \n    return [{\n      name: `data_${bankHex}_${offsetHex}`,\n      confidence: 0.5,\n      reasoning: 'Basic naming based on memory location',\n      category: 'data',\n      alternatives: [\n        `asset_${bankHex}_${offsetHex}`,\n        `unknown_${bankHex}_${offsetHex}`,\n        `rom_${context.offset.toString(16)}`\n      ]\n    }];\n  }\n  \n  private inferCategoryFromContext(context: AssetContext): NamingSuggestion['category'] {\n    if (context.classification?.graphics) return 'sprite';\n    if (context.classification?.audio) return 'audio';\n    if (context.classification?.text) return 'text';\n    \n    // Heuristic based on location\n    if (context.bank >= 0x80) return 'code';\n    if (context.offset < 0x8000) return 'data';\n    \n    return 'data';\n  }\n  \n  private rankAndDeduplicate(suggestions: NamingSuggestion[]): NamingSuggestion[] {\n    // Remove duplicates by name\n    const unique = new Map<string, NamingSuggestion>();\n    \n    for (const suggestion of suggestions) {\n      const existing = unique.get(suggestion.name);\n      if (!existing || suggestion.confidence > existing.confidence) {\n        unique.set(suggestion.name, suggestion);\n      }\n    }\n    \n    // Sort by confidence descending\n    return Array.from(unique.values())\n      .sort((a, b) => b.confidence - a.confidence)\n      .slice(0, 10); // Limit to top 10 suggestions\n  }\n}\n\n/**\n * SNES-specific naming conventions\n */\nclass SNESNamingConventions {\n  generateConventionalNames(context: AssetContext): NamingSuggestion[] {\n    const suggestions: NamingSuggestion[] = [];\n    \n    // Bank-based naming\n    if (context.bank <= 0x3F) {\n      suggestions.push({\n        name: `lorom_bank${context.bank.toString(16).toUpperCase()}_${context.offset.toString(16)}`,\n        confidence: 0.7,\n        reasoning: 'LoROM bank naming convention',\n        category: 'data',\n        alternatives: [],\n        conventions: ['lorom', 'bank_based']\n      });\n    } else if (context.bank >= 0x80 && context.bank <= 0xBF) {\n      suggestions.push({\n        name: `hirom_bank${context.bank.toString(16).toUpperCase()}_${context.offset.toString(16)}`,\n        confidence: 0.7,\n        reasoning: 'HiROM bank naming convention',\n        category: 'data',\n        alternatives: [],\n        conventions: ['hirom', 'bank_based']\n      });\n    }\n    \n    // Size-based naming\n    if (context.size === 32) {\n      suggestions.push({\n        name: `tile_8x8_data_${context.offset.toString(16)}`,\n        confidence: 0.6,\n        reasoning: '32 bytes matches 4bpp 8x8 tile size',\n        category: 'sprite',\n        alternatives: ['chr_8x8_data', 'gfx_tile_data'],\n        conventions: ['tile_size', 'snes_graphics']\n      });\n    }\n    \n    return suggestions;\n  }\n}\n\n/**\n * Game-specific naming database\n */\nclass GameSpecificNaming {\n  private gamePatterns: Record<string, GameNamingPattern> = {\n    'zelda3': {\n      sprites: ['link_', 'enemy_', 'npc_', 'item_'],\n      audio: ['overworld_', 'dungeon_', 'boss_', 'sfx_'],\n      text: ['dialogue_', 'item_name_', 'menu_'],\n      commonOffsets: {\n        0x80000: 'link_sprite_data',\n        0x90000: 'enemy_sprite_data',\n        0xA0000: 'overworld_music'\n      }\n    },\n    'smw': {\n      sprites: ['mario_', 'enemy_', 'powerup_', 'platform_'],\n      audio: ['bgm_', 'sfx_', 'voice_sample_'],\n      text: ['level_name_', 'message_', 'credits_'],\n      commonOffsets: {\n        0x83000: 'mario_graphics',\n        0x94000: 'level_music'\n      }\n    }\n  };\n  \n  generateGameSpecificNames(context: AssetContext): NamingSuggestion[] {\n    const suggestions: NamingSuggestion[] = [];\n    \n    if (!context.gameId || !this.gamePatterns[context.gameId]) {\n      return suggestions;\n    }\n    \n    const pattern = this.gamePatterns[context.gameId];\n    \n    // Check for known offsets\n    if (pattern.commonOffsets[context.offset]) {\n      suggestions.push({\n        name: pattern.commonOffsets[context.offset],\n        confidence: 0.9,\n        reasoning: `Known ${context.gameId} asset at this location`,\n        category: 'sprite', // Default category\n        alternatives: [],\n        conventions: ['game_specific', context.gameId]\n      });\n    }\n    \n    // Apply game-specific prefixes\n    const category = this.inferCategoryFromContext(context);\n    let prefixes: string[] = [];\n    \n    switch (category) {\n      case 'sprite':\n        prefixes = pattern.sprites || [];\n        break;\n      case 'audio':\n        prefixes = pattern.audio || [];\n        break;\n      case 'text':\n        prefixes = pattern.text || [];\n        break;\n    }\n    \n    for (const prefix of prefixes) {\n      suggestions.push({\n        name: `${prefix}${context.offset.toString(16)}`,\n        confidence: 0.75,\n        reasoning: `${context.gameId}-specific naming pattern`,\n        category,\n        alternatives: [],\n        conventions: ['game_specific', context.gameId]\n      });\n    }\n    \n    return suggestions;\n  }\n  \n  private inferCategoryFromContext(context: AssetContext): NamingSuggestion['category'] {\n    if (context.classification?.graphics) return 'sprite';\n    if (context.classification?.audio) return 'audio';\n    if (context.classification?.text) return 'text';\n    return 'data';\n  }\n}\n\ninterface GameNamingPattern {\n  sprites: string[];\n  audio: string[];\n  text: string[];\n  commonOffsets: Record<number, string>;\n}
+    const suggestions: NamingSuggestion[] = [];
+    
+    // Graphics naming
+    if (context.classification?.graphics) {
+      const graphics = context.classification.graphics;
+      suggestions.push({
+        name: this.generateGraphicsName(graphics, context),
+        confidence: graphics.confidence,
+        reasoning: `Graphics classification detected ${graphics.type} with ${(graphics.confidence * 100).toFixed(1)}% confidence`,
+        category: 'sprite',
+        alternatives: this.generateGraphicsAlternatives(graphics, context),
+        conventions: ['type_based', 'size_aware']
+      });
+    }
+    
+    // Audio naming
+    if (context.classification?.audio) {
+      const audio = context.classification.audio;
+      suggestions.push({
+        name: this.generateAudioName(audio, context),
+        confidence: audio.confidence,
+        reasoning: `Audio classification detected ${audio.type} with ${(audio.confidence * 100).toFixed(1)}% confidence`,
+        category: 'audio',
+        alternatives: this.generateAudioAlternatives(audio, context),
+        conventions: ['snes_audio', 'channel_aware']
+      });
+    }
+    
+    // Text naming
+    if (context.classification?.text) {
+      const text = context.classification.text;
+      suggestions.push({
+        name: this.generateTextName(text, context),
+        confidence: text.confidence,
+        reasoning: `Text classification detected ${text.type} with ${(text.confidence * 100).toFixed(1)}% confidence`,
+        category: 'text',
+        alternatives: this.generateTextAlternatives(text, context),
+        conventions: ['text_type', 'encoding_aware']
+      });
+    }
+    
+    return suggestions;
+  }
+  
+  private generateGraphicsName(graphics: GraphicsClassification, context: AssetContext): string {
+    const bankHex = context.bank.toString(16).toUpperCase().padStart(2, '0');
+    const offsetHex = context.offset.toString(16).toUpperCase().padStart(4, '0');
+    
+    switch (graphics.type) {
+      case 'sprite':
+        return `sprite_${bankHex}_${offsetHex}`;
+      case 'tile':
+        return `tile_${graphics.format}_${bankHex}_${offsetHex}`;
+      case 'background':
+        return `bg_layer_${bankHex}_${offsetHex}`;
+      case 'ui':
+        return `ui_element_${bankHex}_${offsetHex}`;
+      case 'font':
+        return `font_${graphics.format}_${bankHex}_${offsetHex}`;
+      case 'palette':
+        return `palette_${bankHex}_${offsetHex}`;
+      default:
+        return `graphics_${bankHex}_${offsetHex}`;
+    }
+  }
+  
+  private generateAudioName(audio: AudioClassification, context: AssetContext): string {
+    const bankHex = context.bank.toString(16).toUpperCase().padStart(2, '0');
+    const offsetHex = context.offset.toString(16).toUpperCase().padStart(4, '0');
+    
+    switch (audio.type) {
+      case 'brr_sample':
+        return `sample_brr_${bankHex}_${offsetHex}`;
+      case 'sequence':
+        return `music_seq_${bankHex}_${offsetHex}`;
+      case 'spc_code':
+        return `spc_driver_${bankHex}_${offsetHex}`;
+      case 'instrument':
+        return `instrument_${bankHex}_${offsetHex}`;
+      default:
+        return `audio_${bankHex}_${offsetHex}`;
+    }
+  }
+  
+  private generateTextName(text: TextClassification, context: AssetContext): string {
+    const bankHex = context.bank.toString(16).toUpperCase().padStart(2, '0');
+    const offsetHex = context.offset.toString(16).toUpperCase().padStart(4, '0');
+    
+    switch (text.type) {
+      case 'dialogue':
+        return `dialogue_${text.compression !== 'none' ? text.compression + '_' : ''}${bankHex}_${offsetHex}`;
+      case 'menu':
+        return `menu_text_${bankHex}_${offsetHex}`;
+      case 'item_name':
+        return `item_names_${bankHex}_${offsetHex}`;
+      case 'credits':
+        return `credits_text_${bankHex}_${offsetHex}`;
+      case 'code_comment':
+        return `debug_text_${bankHex}_${offsetHex}`;
+      default:
+        return `text_${bankHex}_${offsetHex}`;
+    }
+  }
+  
+  private generateGraphicsAlternatives(graphics: GraphicsClassification, context: AssetContext): string[] {
+    const base = this.generateGraphicsName(graphics, context);
+    const alternatives = [base];
+    
+    // Size-based alternatives
+    if (graphics.dimensions) {
+      alternatives.push(`${graphics.type}_${graphics.dimensions.width}x${graphics.dimensions.height}_data`);
+    }
+    
+    // Format-based alternatives
+    if (graphics.format) {
+      alternatives.push(`${graphics.type}_${graphics.format}_data`);
+    }
+    
+    // Index-based alternatives
+    const assetIndex = Math.floor(context.offset / 0x1000); // Rough index
+    alternatives.push(`${graphics.type}_${assetIndex.toString().padStart(3, '0')}`);
+    
+    return [...new Set(alternatives)];
+  }
+  
+  private generateAudioAlternatives(audio: AudioClassification, context: AssetContext): string[] {
+    const base = this.generateAudioName(audio, context);
+    const alternatives = [base];
+    
+    // Rate-based alternatives
+    if (audio.sampleRate) {
+      alternatives.push(`${audio.type}_${audio.sampleRate}hz`);
+    }
+    
+    // Channel-based alternatives
+    if (audio.channels) {
+      alternatives.push(`${audio.type}_${audio.channels}ch`);
+    }
+    
+    // Encoding-based alternatives
+    if (audio.encoding) {
+      alternatives.push(`${audio.type}_${audio.encoding}`);
+    }
+    
+    return [...new Set(alternatives)];
+  }
+  
+  private generateTextAlternatives(text: TextClassification, context: AssetContext): string[] {
+    const base = this.generateTextName(text, context);
+    const alternatives = [base];
+    
+    // Encoding-based alternatives
+    alternatives.push(`${text.type}_${text.encoding}`);
+    
+    // Compression-based alternatives
+    if (text.compression && text.compression !== 'none') {
+      alternatives.push(`${text.type}_compressed`);
+      alternatives.push(`${text.type}_${text.compression}`);
+    }
+    
+    return [...new Set(alternatives)];
+  }
+  
+  private applySNESConventions(context: AssetContext): NamingSuggestion[] {
+    return this.snesConventions.generateConventionalNames(context);
+  }
+  
+  private applyCustomPatterns(context: AssetContext, patterns: string[]): NamingSuggestion[] {
+    const suggestions: NamingSuggestion[] = [];
+    
+    for (const pattern of patterns) {
+      const name = this.applyPattern(pattern, context);
+      if (name) {
+        suggestions.push({
+          name,
+          confidence: 0.6,
+          reasoning: `Generated from custom pattern: ${pattern}`,
+          category: this.inferCategoryFromContext(context),
+          alternatives: [],
+          conventions: ['custom_pattern']
+        });
+      }
+    }
+    
+    return suggestions;
+  }
+  
+  private applyPattern(pattern: string, context: AssetContext): string | null {
+    let result = pattern;
+    
+    // Replace common placeholders
+    const replacements: Record<string, string> = {
+      '{{bank}}': context.bank.toString(16).toUpperCase().padStart(2, '0'),
+      '{{offset}}': context.offset.toString(16).toUpperCase().padStart(4, '0'),
+      '{{size}}': context.size.toString(),
+      '{{index}}': Math.floor(context.offset / 0x1000).toString().padStart(3, '0'),
+      '{{type}}': context.classification?.graphics?.type || 'unknown',
+      '{{layer}}': '0', // Default layer
+      '{{asset_type}}': this.inferCategoryFromContext(context),
+      '{{game}}': context.gameId || 'unknown'
+    };
+    
+    for (const [placeholder, value] of Object.entries(replacements)) {
+      result = result.replace(new RegExp(placeholder, 'g'), value);
+    }
+    
+    return result;
+  }
+  
+  private applyGameSpecificNaming(context: AssetContext): NamingSuggestion[] {
+    return this.gameDatabase.generateGameSpecificNames(context);
+  }
+  
+  private generateBasicSuggestions(context: AssetContext): NamingSuggestion[] {
+    const bankHex = context.bank.toString(16).toUpperCase().padStart(2, '0');
+    const offsetHex = context.offset.toString(16).toUpperCase().padStart(4, '0');
+    
+    return [{
+      name: `data_${bankHex}_${offsetHex}`,
+      confidence: 0.5,
+      reasoning: 'Basic naming based on memory location',
+      category: 'data',
+      alternatives: [
+        `asset_${bankHex}_${offsetHex}`,
+        `unknown_${bankHex}_${offsetHex}`,
+        `rom_${context.offset.toString(16)}`
+      ]
+    }];
+  }
+  
+  private inferCategoryFromContext(context: AssetContext): NamingSuggestion['category'] {
+    if (context.classification?.graphics) return 'sprite';
+    if (context.classification?.audio) return 'audio';
+    if (context.classification?.text) return 'text';
+    
+    // Heuristic based on location
+    if (context.bank >= 0x80) return 'code';
+    if (context.offset < 0x8000) return 'data';
+    
+    return 'data';
+  }
+  
+  private rankAndDeduplicate(suggestions: NamingSuggestion[]): NamingSuggestion[] {
+    // Remove duplicates by name
+    const unique = new Map<string, NamingSuggestion>();
+    
+    for (const suggestion of suggestions) {
+      const existing = unique.get(suggestion.name);
+      if (!existing || suggestion.confidence > existing.confidence) {
+        unique.set(suggestion.name, suggestion);
+      }
+    }
+    
+    // Sort by confidence descending
+    return Array.from(unique.values())
+      .sort((a, b) => b.confidence - a.confidence)
+      .slice(0, 10); // Limit to top 10 suggestions
+  }
+}
+
+/**
+ * SNES-specific naming conventions
+ */
+class SNESNamingConventions {
+  generateConventionalNames(context: AssetContext): NamingSuggestion[] {
+    const suggestions: NamingSuggestion[] = [];
+    
+    // Bank-based naming
+    if (context.bank <= 0x3F) {
+      suggestions.push({
+        name: `lorom_bank${context.bank.toString(16).toUpperCase()}_${context.offset.toString(16)}`,
+        confidence: 0.7,
+        reasoning: 'LoROM bank naming convention',
+        category: 'data',
+        alternatives: [],
+        conventions: ['lorom', 'bank_based']
+      });
+    } else if (context.bank >= 0x80 && context.bank <= 0xBF) {
+      suggestions.push({
+        name: `hirom_bank${context.bank.toString(16).toUpperCase()}_${context.offset.toString(16)}`,
+        confidence: 0.7,
+        reasoning: 'HiROM bank naming convention',
+        category: 'data',
+        alternatives: [],
+        conventions: ['hirom', 'bank_based']
+      });
+    }
+    
+    // Size-based naming
+    if (context.size === 32) {
+      suggestions.push({
+        name: `tile_8x8_data_${context.offset.toString(16)}`,
+        confidence: 0.6,
+        reasoning: '32 bytes matches 4bpp 8x8 tile size',
+        category: 'sprite',
+        alternatives: ['chr_8x8_data', 'gfx_tile_data'],
+        conventions: ['tile_size', 'snes_graphics']
+      });
+    }
+    
+    return suggestions;
+  }
+}
+
+/**
+ * Game-specific naming database
+ */
+class GameSpecificNaming {
+  private gamePatterns: Record<string, GameNamingPattern> = {
+    'zelda3': {
+      sprites: ['link_', 'enemy_', 'npc_', 'item_'],
+      audio: ['overworld_', 'dungeon_', 'boss_', 'sfx_'],
+      text: ['dialogue_', 'item_name_', 'menu_'],
+      commonOffsets: {
+        0x80000: 'link_sprite_data',
+        0x90000: 'enemy_sprite_data',
+        0xA0000: 'overworld_music'
+      }
+    },
+    'smw': {
+      sprites: ['mario_', 'enemy_', 'powerup_', 'platform_'],
+      audio: ['bgm_', 'sfx_', 'voice_sample_'],
+      text: ['level_name_', 'message_', 'credits_'],
+      commonOffsets: {
+        0x83000: 'mario_graphics',
+        0x94000: 'level_music'
+      }
+    }
+  };
+  
+  generateGameSpecificNames(context: AssetContext): NamingSuggestion[] {
+    const suggestions: NamingSuggestion[] = [];
+    
+    if (!context.gameId || !this.gamePatterns[context.gameId]) {
+      return suggestions;
+    }
+    
+    const pattern = this.gamePatterns[context.gameId];
+    
+    // Check for known offsets
+    if (pattern.commonOffsets[context.offset]) {
+      suggestions.push({
+        name: pattern.commonOffsets[context.offset],
+        confidence: 0.9,
+        reasoning: `Known ${context.gameId} asset at this location`,
+        category: 'sprite', // Default category
+        alternatives: [],
+        conventions: ['game_specific', context.gameId]
+      });
+    }
+    
+    // Apply game-specific prefixes
+    const category = this.inferCategoryFromContext(context);
+    let prefixes: string[] = [];
+    
+    switch (category) {
+      case 'sprite':
+        prefixes = pattern.sprites || [];
+        break;
+      case 'audio':
+        prefixes = pattern.audio || [];
+        break;
+      case 'text':
+        prefixes = pattern.text || [];
+        break;
+    }
+    
+    for (const prefix of prefixes) {
+      suggestions.push({
+        name: `${prefix}${context.offset.toString(16)}`,
+        confidence: 0.75,
+        reasoning: `${context.gameId}-specific naming pattern`,
+        category,
+        alternatives: [],
+        conventions: ['game_specific', context.gameId]
+      });
+    }
+    
+    return suggestions;
+  }
+  
+  private inferCategoryFromContext(context: AssetContext): NamingSuggestion['category'] {
+    if (context.classification?.graphics) return 'sprite';
+    if (context.classification?.audio) return 'audio';
+    if (context.classification?.text) return 'text';
+    return 'data';
+  }
+}
+
+interface GameNamingPattern {
+  sprites: string[];
+  audio: string[];
+  text: string[];
+  commonOffsets: Record<number, string>;
+}

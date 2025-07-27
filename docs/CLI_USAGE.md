@@ -118,6 +118,15 @@ snes-disasm rom.smc --analysis --quality --verbose --output-dir full-analysis
 
 # Custom output with symbols
 snes-disasm rom.smc --symbols my-symbols.sym --analysis --output custom-disasm.asm
+
+# AI-powered analysis with automatic documentation
+snes-disasm rom.smc --auto-document --pattern-match --output-dir ai-analysis
+
+# Performance benchmarking
+snes-disasm rom.smc --benchmark --comparison reference-output --output-dir benchmarks
+
+# MCP integration for enhanced analysis
+snes-disasm rom.smc --mcp-servers snes,zelda3,snes9x --ai-config custom.json
 ```
 
 ## Output File Organization
@@ -156,6 +165,61 @@ Supports external symbol files:
 - `.mlb` files (emulator format)
 - `.json` files (structured data)
 - `.csv` files (spreadsheet format)
+
+### AI Integration Features
+
+#### Automatic Documentation (`--auto-document`)
+Leverages AI to generate comprehensive documentation:
+- Function purpose analysis
+- Variable usage patterns
+- Code flow explanations
+- Game logic interpretation
+- Hardware interaction documentation
+
+#### Pattern Matching (`--pattern-match`)
+Uses AI-powered pattern recognition:
+- Common SNES programming patterns
+- Game engine structures
+- Audio/graphics routines
+- Memory management patterns
+- Optimization techniques
+
+#### MCP Server Integration (`--mcp-servers`)
+Connects to Model Context Protocol servers for enhanced analysis:
+- **snes-mcp-server**: SNES hardware architecture context
+- **zelda3**: A Link to the Past specific patterns
+- **snes9x**: Emulator implementation insights
+- **snes-mister**: FPGA implementation details
+
+#### AI Configuration (`--ai-config`)
+Customize AI behavior with configuration files:
+```json
+{
+  "enablePatternMatching": true,
+  "documentationStyle": "detailed",
+  "mcpServers": ["snes", "zelda3"],
+  "analysisDepth": "comprehensive",
+  "outputLanguage": "english"
+}
+```
+
+### Performance Analysis Features
+
+#### Benchmarking (`--benchmark`)
+Generates detailed performance metrics:
+- Disassembly speed measurements
+- Memory usage analysis
+- Pattern recognition timing
+- AI processing overhead
+- Output generation performance
+
+#### Comparison Analysis (`--comparison`)
+Compares output against reference implementations:
+- Accuracy measurements
+- Coverage analysis
+- Quality improvements
+- Performance differences
+- Feature completeness
 
 ## Tips and Best Practices
 
