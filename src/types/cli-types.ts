@@ -1,6 +1,6 @@
 /**
  * Centralized CLI Options and Types
- * 
+ *
  * This module defines all CLI-related types and interfaces
  * to ensure consistency across the application.
  */
@@ -13,26 +13,26 @@ export interface CLIOptions {
   start?: string;
   end?: string;
   verbose?: boolean;
-  
+
   // Symbol and analysis options
   symbols?: string;
   analysis?: boolean;
   quality?: boolean;
   labels?: string;
   comments?: string;
-  
+
   // Asset extraction options
   extractAssets?: boolean;
   assetTypes?: string;
   assetFormats?: string;
-  
+
   // Enhanced disassembly options
   disableAI?: boolean;
   enhancedDisasm?: boolean;
   bankAware?: boolean;
   detectFunctions?: boolean;
   generateDocs?: boolean;
-  
+
   // BRR audio decoding options
   decodeBrr?: string;
   brrOutput?: string;
@@ -40,7 +40,7 @@ export interface CLIOptions {
   brrEnableLooping?: boolean;
   brrMaxSamples?: string;
   brrInfo?: boolean;
-  
+
   // Interactive mode
   interactive?: boolean;
 }

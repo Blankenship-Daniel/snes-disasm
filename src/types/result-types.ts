@@ -1,6 +1,6 @@
 /**
  * Result Types for Better Error Handling
- * 
+ *
  * Implements Result pattern for better error management
  * and eliminates need for try-catch everywhere.
  */
@@ -62,7 +62,7 @@ export class DisassemblerError extends Error {
   constructor(
     public type: DisassemblerErrorType,
     message: string,
-    public context?: any
+    public context?: Record<string, unknown>
   ) {
     super(message);
     this.name = 'DisassemblerError';

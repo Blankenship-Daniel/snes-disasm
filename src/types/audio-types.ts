@@ -34,35 +34,36 @@ export interface BRRBlock {
   samples: number[];
 }
 
-/**
- * Complete BRR sample with metadata
- */
-interface BRRSample {
-  /** Array of BRR blocks making up the sample */
-  blocks: BRRBlock[];
-  /** Loop start point (in blocks) */
-  loopStart?: number;
-  /** Sample rate hint (not stored in BRR, but useful for playback) */
-  sampleRate?: number;
-  /** Original length in samples (before compression) */
-  originalLength: number;
-  /** Total size in bytes */
-  sizeInBytes: number;
-}
+// Temporarily commented out unused types
+// /**
+//  * Complete BRR sample with metadata
+//  */
+// interface BRRSample {
+//   /** Array of BRR blocks making up the sample */
+//   blocks: BRRBlock[];
+//   /** Loop start point (in blocks) */
+//   loopStart?: number;
+//   /** Sample rate hint (not stored in BRR, but useful for playback) */
+//   sampleRate?: number;
+//   /** Original length in samples (before compression) */
+//   originalLength: number;
+//   /** Total size in bytes */
+//   sizeInBytes: number;
+// }
 
-/**
- * BRR conversion parameters
- */
-interface BRRConversionParams {
-  /** Target compression filter preference */
-  preferredFilter?: number;
-  /** Enable loop point detection */
-  detectLoop?: boolean;
-  /** Maximum compression range to use */
-  maxRange?: number;
-  /** Quality vs size tradeoff (0-100) */
-  quality?: number;
-}
+// /**
+//  * BRR conversion parameters
+//  */
+// interface BRRConversionParams {
+//   /** Target compression filter preference */
+//   preferredFilter?: number;
+//   /** Enable loop point detection */
+//   detectLoop?: boolean;
+//   /** Maximum compression range to use */
+//   maxRange?: number;
+//   /** Quality vs size tradeoff (0-100) */
+//   quality?: number;
+// }
 
 // =============================================================================
 // SPC File Format Structures
@@ -124,25 +125,25 @@ export interface SPCFile {
   extendedTags?: Record<string, string>;
 }
 
-/**
- * SPC playback state
- */
-interface SPCState {
-  /** Current PC (Program Counter) */
-  pc: number;
-  /** Current CPU registers */
-  registers: {
-    a: number;
-    x: number;
-    y: number;
-    sp: number;
-    psw: number;
-  };
-  /** Current DSP register values */
-  dspState: DSPState;
-  /** Playback time in samples */
-  playbackTime: number;
-}
+// /**
+//  * SPC playback state
+//  */
+// interface SPCState {
+//   /** Current PC (Program Counter) */
+//   pc: number;
+//   /** Current CPU registers */
+//   registers: {
+//     a: number;
+//     x: number;
+//     y: number;
+//     sp: number;
+//     psw: number;
+//   };
+//   /** Current DSP register values */
+//   dspState: DSPState;
+//   /** Playback time in samples */
+//   playbackTime: number;
+// }
 
 // =============================================================================
 // DSP (Digital Signal Processor) Structures
@@ -290,109 +291,46 @@ export interface SampleDirectoryEntry {
   loopAddress: number;
 }
 
-/**
- * Sample metadata for organizing and managing samples
- */
-interface SampleMetadata {
-  /** Unique identifier for the sample */
-  id: string;
-  /** Human-readable name */
-  name: string;
-  /** Sample directory index */
-  directoryIndex: number;
-  /** Start address in SPC RAM */
-  startAddress: number;
-  /** Loop start address */
-  loopAddress: number;
-  /** Estimated base pitch (C4 = 8192) */
-  basePitch: number;
-  /** Root key for pitch calculations */
-  rootKey: number;
-  /** Fine tuning offset */
-  fineTune: number;
-  /** Sample length in BRR blocks */
-  lengthInBlocks: number;
-  /** Whether sample loops */
-  loops: boolean;
-  /** Sample category/group */
-  category?: string;
-  /** Additional notes or description */
-  notes?: string;
-}
+// Removed unused SampleMetadata interface
+// /**
+//  * Sample metadata for organizing and managing samples
+//  */
+// interface SampleMetadata {
+//   /** Unique identifier for the sample */
+//   id: string;
+//   /** Human-readable name */
+//   name: string;
+//   /** Sample directory index */
+//   directoryIndex: number;
+//   /** Start address in SPC RAM */
+//   startAddress: number;
+//   /** Loop start address */
+//   loopAddress: number;
+//   /** Estimated base pitch (C4 = 8192) */
+//   basePitch: number;
+//   /** Root key for pitch calculations */
+//   rootKey: number;
+//   /** Fine tuning offset */
+//   fineTune: number;
+//   /** Sample length in BRR blocks */
+//   lengthInBlocks: number;
+//   /** Whether sample loops */
+//   loops: boolean;
+//   /** Sample category/group */
+//   category?: string;
+//   /** Additional notes or description */
+//   notes?: string;
+// }
 
-/**
- * Complete sample bank containing multiple samples
- */
-interface SampleBank {
-  /** Bank name/identifier */
-  name: string;
-  /** Sample directory (up to 256 entries) */
-  directory: SampleDirectoryEntry[];
-  /** Sample metadata */
-  samples: SampleMetadata[];
-  /** Raw BRR sample data */
-  sampleData: Uint8Array;
-  /** Total size of all samples */
-  totalSize: number;
-}
+// Removed unused SampleBank interface
 
 // =============================================================================
 // Audio Processing and Conversion Types
 // =============================================================================
 
-/**
- * Audio conversion options
- */
-interface AudioConversionOptions {
-  /** Target sample rate */
-  sampleRate?: number;
-  /** Target bit depth */
-  bitDepth?: number;
-  /** Number of channels */
-  channels?: number;
-  /** Interpolation method for resampling */
-  interpolation?: 'none' | 'linear' | 'gaussian' | 'cubic' | 'sinc';
-  /** Apply anti-aliasing filter */
-  antiAlias?: boolean;
-  /** Normalize output levels */
-  normalize?: boolean;
-  /** Echo/reverb processing */
-  processEcho?: boolean;
-}
+// Removed unused AudioConversionOptions interface
 
-/**
- * Playback configuration
- */
-interface PlaybackConfig {
-  /** Master volume (0.0 - 1.0) */
-  masterVolume?: number;
-  /** Individual channel volumes */
-  channelVolumes?: number[];
-  /** Channel mute states */
-  channelMutes?: boolean[];
-  /** Playback speed multiplier */
-  speed?: number;
-  /** Enable echo processing */
-  echoEnabled?: boolean;
-  /** Echo wet/dry mix */
-  echoMix?: number;
-}
+// Removed unused PlaybackConfig interface
 
-/**
- * Audio analysis results
- */
-interface AudioAnalysis {
-  /** Peak amplitude levels per channel */
-  peakLevels: number[];
-  /** RMS levels per channel */
-  rmsLevels: number[];
-  /** Frequency spectrum data */
-  frequencySpectrum?: number[];
-  /** Detected fundamental frequency */
-  fundamentalFreq?: number;
-  /** Dynamic range */
-  dynamicRange: number;
-  /** Signal-to-noise ratio */
-  snr?: number;
-}
+// Removed unused AudioAnalysis interface
 

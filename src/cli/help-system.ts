@@ -3,6 +3,9 @@
  */
 
 import chalk from 'chalk';
+import { createLogger } from '../utils/logger';
+
+const logger = createLogger('HelpSystem');
 
 interface HelpContent {
   title: string;
@@ -161,21 +164,21 @@ export function getHelpForContext(context: string): string {
   }
 
   let output = help.description;
-  
+
   if (help.examples && help.examples.length > 0) {
     output += '\n\n' + chalk.yellow('Examples:');
     help.examples.forEach(example => {
       output += '\n  • ' + example;
     });
   }
-  
+
   if (help.tips && help.tips.length > 0) {
     output += '\n\n' + chalk.green('Tips:');
     help.tips.forEach(tip => {
       output += '\n  💡 ' + tip;
     });
   }
-  
+
   if (help.relatedCommands && help.relatedCommands.length > 0) {
     output += '\n\n' + chalk.blue('Related:');
     help.relatedCommands.forEach(cmd => {
@@ -187,10 +190,15 @@ export function getHelpForContext(context: string): string {
 }
 
 export function showContextualHelp(context: string): void {
-  console.log(chalk.gray('\n┌─ HELP: ' + context.toUpperCase() + ' ─'.padEnd(50, '─')));
-  console.log(chalk.dim(getHelpForContext(context).split('\n').map(line => '│ ' + line).join('\n')));
-  console.log(chalk.gray('└' + '─'.repeat(50)));
-  console.log(chalk.dim('\nPress any key to continue...'));
+  const header = '\n┌─ HELP: ' + context.toUpperCase() + ' ─'.padEnd(50, '─');
+  const content = getHelpForContext(context).split('\n').map(line => '│ ' + line).join('\n');
+  const footer = '└' + '─'.repeat(50);
+  const continuation = '\nPress any key to continue...';
+
+  logger.info(chalk.gray(header));
+  logger.info(chalk.dim(content));
+  logger.info(chalk.gray(footer));
+  logger.info(chalk.dim(continuation));
 }
 
 export function getAvailableHelpTopics(): string[] {
@@ -200,7 +208,7 @@ export function getAvailableHelpTopics(): string[] {
 export function searchHelp(query: string): string[] {
   const results: string[] = [];
   const lowerQuery = query.toLowerCase();
-  
+
   Object.entries(helpDatabase).forEach(([key, content]) => {
     if (
       key.toLowerCase().includes(lowerQuery) ||
@@ -210,6 +218,6 @@ export function searchHelp(query: string): string[] {
       results.push(key);
     }
   });
-  
+
   return results;
 }

@@ -423,16 +423,18 @@ export class SNESValidationEngine {
     // Use the new getMostCommonErrors method for better insights
     const topCommonErrors = this.getMostCommonErrors(5);
     if (topCommonErrors.length > 0) {
-      this.logger.info('Top 5 Common Error Patterns:', topCommonErrors.map(([key, count]) => {
-        // Extract readable information from the error key
-        const [type, severity, message] = key.split(':', 3);
-        return {
-          type,
-          severity,
-          pattern: message,
-          count
-        };
-      }));
+      this.logger.info('Top 5 Common Error Patterns:', {
+        patterns: topCommonErrors.map(([key, count]) => {
+          // Extract readable information from the error key
+          const [type, severity, message] = key.split(':', 3);
+          return {
+            type,
+            severity,
+            pattern: message,
+            count
+          };
+        })
+      });
     }
 
     const addressIssues = this.validationResults
@@ -446,7 +448,7 @@ export class SNESValidationEngine {
       .sort((a, b) => b[1] - a[1])
       .slice(0, 5);
 
-    this.logger.info('Top Addresses with Issues:', topAddressIssues);
+    this.logger.info('Top Addresses with Issues:', { addresses: topAddressIssues });
     
     // Log all individual validation failures in verbose mode
     if (this.validationResults.length > 0) {
@@ -482,7 +484,7 @@ export class SNESValidationEngine {
         .sort((a, b) => b[1] - a[1])
         .slice(0, 3); // Show fewer errors than verbose mode
 
-      this.logger.info('Top 3 Common Errors:', topCommonErrors);
+      this.logger.info('Top 3 Common Errors:', { errors: topCommonErrors });
     }
   }
   

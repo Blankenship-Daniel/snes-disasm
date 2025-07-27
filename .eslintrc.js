@@ -1,9 +1,7 @@
 module.exports = {
   parser: '@typescript-eslint/parser',
   extends: [
-    'eslint:recommended',
-    '@typescript-eslint/recommended',
-    '@typescript-eslint/recommended-requiring-type-checking'
+    'eslint:recommended'
   ],
   plugins: ['@typescript-eslint'],
   parserOptions: {

@@ -1,6 +1,6 @@
 /**
  * CLI Session Manager
- * 
+ *
  * Handles session state persistence, recent files, and user preferences
  */
 
@@ -29,7 +29,7 @@ export interface UserPreferences {
   showHelp?: boolean;
   confirmActions?: boolean;
   maxRecentFiles?: number;
-  
+
   // Advanced Analysis Options
   advancedOptions?: {
     analysis?: boolean;           // Enable full analysis by default
@@ -41,14 +41,14 @@ export interface UserPreferences {
     quality?: boolean;            // Generate quality reports
     disableAI?: boolean;          // Disable AI features
   };
-  
+
   // Asset Extraction Preferences
   assetPreferences?: {
     defaultAssetTypes?: string[];     // Default asset types to extract
     defaultAssetFormats?: string[];   // Default graphics formats
     defaultAssetOutputDir?: string;   // Default output directory for assets
   };
-  
+
   // BRR Audio Preferences
   brrPreferences?: {
     defaultSampleRate?: number;    // Default sample rate for BRR decoding
@@ -56,7 +56,7 @@ export interface UserPreferences {
     maxSamples?: number;          // Default max samples to decode
     defaultOutputFormat?: string; // Default output format (wav, flac)
   };
-  
+
   // Analysis Preferences
   analysisPreferences?: {
     defaultAnalysisTypes?: string[];    // Default analysis types to run
@@ -64,7 +64,7 @@ export interface UserPreferences {
     generateHtmlReports?: boolean;      // Generate HTML reports by default
     includeQualityMetrics?: boolean;    // Include quality metrics in analysis
   };
-  
+
   // Output Format Preferences
   formatPreferences?: {
     includeComments?: boolean;     // Include comments in output by default
@@ -72,7 +72,7 @@ export interface UserPreferences {
     generateSymbols?: boolean;     // Generate symbol files by default
     useCustomLabels?: boolean;     // Use custom labels if available
   };
-  
+
   // UI/UX Preferences
   uiPreferences?: {
     preferInteractiveMode?: boolean;  // Prefer interactive mode
@@ -81,7 +81,7 @@ export interface UserPreferences {
     compactOutput?: boolean;          // Use compact output format
     autoSaveResults?: boolean;        // Auto-save analysis results
   };
-  
+
   // AI Feature Preferences
   aiPreferences?: {
     enableAIFeatures?: boolean;           // Enable AI features globally
@@ -137,7 +137,7 @@ export class SessionManager {
     try {
       // Ensure config directory exists
       await fs.mkdir(path.dirname(this.sessionFile), { recursive: true });
-      
+
       // Try to load existing session
       const data = await fs.readFile(this.sessionFile, 'utf-8');
       this.session = { ...this.getDefaultSession(), ...JSON.parse(data) };
@@ -145,7 +145,7 @@ export class SessionManager {
       // File doesn't exist or is corrupted, use defaults
       this.session = this.getDefaultSession();
     }
-    
+
     return this.session;
   }
 
@@ -158,7 +158,7 @@ export class SessionManager {
     }
   }
 
-  async addRecentFile(filePath: string, romInfo?: any): Promise<void> {
+  async addRecentFile(filePath: string, romInfo?: { title?: string; type?: string; size?: number }): Promise<void> {
     const stats = await fs.stat(filePath);
     const recentFile: RecentFile = {
       path: filePath,
@@ -170,14 +170,14 @@ export class SessionManager {
 
     // Remove existing entry if present
     this.session.recentFiles = this.session.recentFiles.filter(f => f.path !== filePath);
-    
+
     // Add to beginning
     this.session.recentFiles.unshift(recentFile);
-    
+
     // Limit to max recent files
-    const maxFiles = this.session.preferences.maxRecentFiles || 10;
+    const maxFiles = this.session.preferences.maxRecentFiles ?? 10;
     this.session.recentFiles = this.session.recentFiles.slice(0, maxFiles);
-    
+
     await this.save();
   }
 
@@ -188,13 +188,13 @@ export class SessionManager {
   async addProject(project: ProjectConfig): Promise<void> {
     // Remove existing project with same name
     this.session.projects = this.session.projects.filter(p => p.name !== project.name);
-    
+
     // Add new project
     this.session.projects.unshift(project);
-    
+
     // Limit to reasonable number of projects
     this.session.projects = this.session.projects.slice(0, 20);
-    
+
     await this.save();
   }
 
@@ -222,12 +222,12 @@ export class SessionManager {
     const units = ['B', 'KB', 'MB', 'GB'];
     let size = bytes;
     let unitIndex = 0;
-    
+
     while (size >= 1024 && unitIndex < units.length - 1) {
       size /= 1024;
       unitIndex++;
     }
-    
+
     return `${size.toFixed(1)} ${units[unitIndex]}`;
   }
 
@@ -244,7 +244,7 @@ export class SessionManager {
   // Clean up recent files that no longer exist
   async cleanupRecentFiles(): Promise<void> {
     const validFiles: RecentFile[] = [];
-    
+
     for (const file of this.session.recentFiles) {
       try {
         await fs.access(file.path);
@@ -253,7 +253,7 @@ export class SessionManager {
         // File no longer exists, skip it
       }
     }
-    
+
     if (validFiles.length !== this.session.recentFiles.length) {
       this.session.recentFiles = validFiles;
       await this.save();
@@ -261,7 +261,7 @@ export class SessionManager {
   }
 
   // Global output directory management
-  
+
   /**
    * Set the global default output directory for the current session
    * @param outputDir - The directory path to set as global default
@@ -306,9 +306,9 @@ export class SessionManager {
     if (specificDir) {
       return specificDir;
     }
-    
-    return this.session.preferences.globalOutputDir || 
-           this.session.preferences.defaultOutputDir || 
+
+    return this.session.preferences.globalOutputDir ??
+           this.session.preferences.defaultOutputDir ??
            './output';
   }
 
@@ -321,7 +321,7 @@ export class SessionManager {
   }
 
   // Advanced Preferences Management
-  
+
   /**
    * Update advanced analysis options preferences
    * @param options - Advanced options to update
@@ -342,7 +342,7 @@ export class SessionManager {
    * @returns Current advanced options preferences
    */
   getAdvancedOptions(): UserPreferences['advancedOptions'] {
-    return this.session.preferences.advancedOptions || {};
+    return this.session.preferences.advancedOptions ?? {};
   }
 
   /**
@@ -365,7 +365,7 @@ export class SessionManager {
    * @returns Current asset preferences
    */
   getAssetPreferences(): UserPreferences['assetPreferences'] {
-    return this.session.preferences.assetPreferences || {};
+    return this.session.preferences.assetPreferences ?? {};
   }
 
   /**
@@ -388,7 +388,7 @@ export class SessionManager {
    * @returns Current BRR preferences
    */
   getBRRPreferences(): UserPreferences['brrPreferences'] {
-    return this.session.preferences.brrPreferences || {};
+    return this.session.preferences.brrPreferences ?? {};
   }
 
   /**
@@ -411,7 +411,7 @@ export class SessionManager {
    * @returns Current analysis preferences
    */
   getAnalysisPreferences(): UserPreferences['analysisPreferences'] {
-    return this.session.preferences.analysisPreferences || {};
+    return this.session.preferences.analysisPreferences ?? {};
   }
 
   /**
@@ -434,7 +434,7 @@ export class SessionManager {
    * @returns Current format preferences
    */
   getFormatPreferences(): UserPreferences['formatPreferences'] {
-    return this.session.preferences.formatPreferences || {};
+    return this.session.preferences.formatPreferences ?? {};
   }
 
   /**
@@ -457,7 +457,7 @@ export class SessionManager {
    * @returns Current UI preferences
    */
   getUIPreferences(): UserPreferences['uiPreferences'] {
-    return this.session.preferences.uiPreferences || {};
+    return this.session.preferences.uiPreferences ?? {};
   }
 
   /**
@@ -480,7 +480,7 @@ export class SessionManager {
    * @returns Current AI preferences
    */
   getAIPreferences(): UserPreferences['aiPreferences'] {
-    return this.session.preferences.aiPreferences || {};
+    return this.session.preferences.aiPreferences ?? {};
   }
 
   /**
@@ -490,40 +490,40 @@ export class SessionManager {
    */
   applyPreferencesToOptions(baseOptions: CLIOptions = {}): CLIOptions {
     const prefs = this.session.preferences;
-    const advanced = prefs.advancedOptions || {};
-    const asset = prefs.assetPreferences || {};
-    const brr = prefs.brrPreferences || {};
-    const analysis = prefs.analysisPreferences || {};
-    const format = prefs.formatPreferences || {};
-    const ui = prefs.uiPreferences || {};
-    const ai = prefs.aiPreferences || {};
+    const advanced = prefs.advancedOptions ?? {};
+    const asset = prefs.assetPreferences ?? {};
+    const brr = prefs.brrPreferences ?? {};
+    // const analysis = prefs.analysisPreferences ?? {}; // unused
+    // const format = prefs.formatPreferences ?? {}; // unused
+    const ui = prefs.uiPreferences ?? {};
+    // const ai = prefs.aiPreferences ?? {}; // unused
 
     return {
       ...baseOptions,
-      
+
       // Apply basic preferences
-      format: baseOptions.format || prefs.defaultFormat || 'ca65',
-      outputDir: baseOptions.outputDir || this.getEffectiveOutputDir(),
-      verbose: baseOptions.verbose !== undefined ? baseOptions.verbose : ui.showProgressBars !== false,
-      
+      format: baseOptions.format ?? prefs.defaultFormat ?? 'ca65',
+      outputDir: baseOptions.outputDir ?? this.getEffectiveOutputDir(),
+      verbose: baseOptions.verbose ?? (ui.showProgressBars !== false),
+
       // Apply advanced analysis options
-      analysis: baseOptions.analysis !== undefined ? baseOptions.analysis : advanced.analysis,
-      enhancedDisasm: baseOptions.enhancedDisasm !== undefined ? baseOptions.enhancedDisasm : advanced.enhancedDisasm,
-      bankAware: baseOptions.bankAware !== undefined ? baseOptions.bankAware : advanced.bankAware,
-      detectFunctions: baseOptions.detectFunctions !== undefined ? baseOptions.detectFunctions : advanced.detectFunctions,
-      generateDocs: baseOptions.generateDocs !== undefined ? baseOptions.generateDocs : advanced.generateDocs,
-      extractAssets: baseOptions.extractAssets !== undefined ? baseOptions.extractAssets : advanced.extractAssets,
-      quality: baseOptions.quality !== undefined ? baseOptions.quality : advanced.quality,
-      disableAI: baseOptions.disableAI !== undefined ? baseOptions.disableAI : advanced.disableAI,
-      
+      analysis: baseOptions.analysis ?? advanced.analysis,
+      enhancedDisasm: baseOptions.enhancedDisasm ?? advanced.enhancedDisasm,
+      bankAware: baseOptions.bankAware ?? advanced.bankAware,
+      detectFunctions: baseOptions.detectFunctions ?? advanced.detectFunctions,
+      generateDocs: baseOptions.generateDocs ?? advanced.generateDocs,
+      extractAssets: baseOptions.extractAssets ?? advanced.extractAssets,
+      quality: baseOptions.quality ?? advanced.quality,
+      disableAI: baseOptions.disableAI ?? advanced.disableAI,
+
       // Apply asset extraction preferences
-      assetTypes: baseOptions.assetTypes || asset.defaultAssetTypes?.join(','),
-      assetFormats: baseOptions.assetFormats || asset.defaultAssetFormats?.join(','),
-      
+      assetTypes: baseOptions.assetTypes ?? asset.defaultAssetTypes?.join(','),
+      assetFormats: baseOptions.assetFormats ?? asset.defaultAssetFormats?.join(','),
+
       // Apply BRR audio preferences
-      brrSampleRate: baseOptions.brrSampleRate || brr.defaultSampleRate?.toString(),
-      brrEnableLooping: baseOptions.brrEnableLooping !== undefined ? baseOptions.brrEnableLooping : brr.enableLooping,
-      brrMaxSamples: baseOptions.brrMaxSamples || brr.maxSamples?.toString(),
+      brrSampleRate: baseOptions.brrSampleRate ?? brr.defaultSampleRate?.toString(),
+      brrEnableLooping: baseOptions.brrEnableLooping ?? brr.enableLooping,
+      brrMaxSamples: baseOptions.brrMaxSamples ?? brr.maxSamples?.toString()
     };
   }
 
@@ -534,20 +534,20 @@ export class SessionManager {
   getPreferencesSummary(): string {
     const prefs = this.session.preferences;
     const lines: string[] = [];
-    
+
     lines.push('Current User Preferences:');
     lines.push('=' + '='.repeat(50));
-    
+
     // Basic preferences
     lines.push('');
     lines.push('Basic Settings:');
-    lines.push(`  Default Format: ${prefs.defaultFormat || 'ca65'}`);
-    lines.push(`  Default Output Dir: ${prefs.defaultOutputDir || './output'}`);
-    lines.push(`  Global Output Dir: ${prefs.globalOutputDir || 'Not set'}`);
-    lines.push(`  Max Recent Files: ${prefs.maxRecentFiles || 10}`);
+    lines.push(`  Default Format: ${prefs.defaultFormat ?? 'ca65'}`);
+    lines.push(`  Default Output Dir: ${prefs.defaultOutputDir ?? './output'}`);
+    lines.push(`  Global Output Dir: ${prefs.globalOutputDir ?? 'Not set'}`);
+    lines.push(`  Max Recent Files: ${prefs.maxRecentFiles ?? 10}`);
     lines.push(`  Show Help: ${prefs.showHelp !== false ? 'Yes' : 'No'}`);
     lines.push(`  Confirm Actions: ${prefs.confirmActions !== false ? 'Yes' : 'No'}`);
-    
+
     // Advanced options
     if (prefs.advancedOptions) {
       lines.push('');
@@ -559,7 +559,7 @@ export class SessionManager {
         }
       });
     }
-    
+
     // Asset preferences
     if (prefs.assetPreferences) {
       lines.push('');
@@ -575,7 +575,7 @@ export class SessionManager {
         lines.push(`  Default Asset Output Dir: ${asset.defaultAssetOutputDir}`);
       }
     }
-    
+
     // BRR preferences
     if (prefs.brrPreferences) {
       lines.push('');
@@ -594,7 +594,7 @@ export class SessionManager {
         lines.push(`  Default Output Format: ${brr.defaultOutputFormat}`);
       }
     }
-    
+
     // Analysis preferences
     if (prefs.analysisPreferences) {
       lines.push('');
@@ -613,7 +613,7 @@ export class SessionManager {
         lines.push(`  Include Quality Metrics: ${analysis.includeQualityMetrics ? 'Yes' : 'No'}`);
       }
     }
-    
+
     // AI preferences
     if (prefs.aiPreferences) {
       lines.push('');
@@ -632,7 +632,7 @@ export class SessionManager {
         lines.push(`  Generate AI Documentation: ${ai.generateAIDocumentation ? 'Yes' : 'No'}`);
       }
     }
-    
+
     return lines.join('\n');
   }
 
@@ -654,7 +654,7 @@ export class SessionManager {
       version: '1.0.0',
       preferences: this.session.preferences
     };
-    
+
     await fs.writeFile(filePath, JSON.stringify(prefsData, null, 2));
   }
 
@@ -666,7 +666,7 @@ export class SessionManager {
     try {
       const data = await fs.readFile(filePath, 'utf-8');
       const prefsData = JSON.parse(data);
-      
+
       if (prefsData.preferences) {
         // Merge with current preferences, preserving structure
         this.session.preferences = {

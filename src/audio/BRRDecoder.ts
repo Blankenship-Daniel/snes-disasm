@@ -1,13 +1,5 @@
-import { BRRBlock, BRRBlockHeader, ADSREnvelope } from '../types/audio-types';
-import {
-  clamp,
-  applyFilter,
-  decodeBrrFile,
-  getStandardSampleRate,
-  calculatePitchRatio,
-  convertSampleRateGaussian,
-  BRRDecodingError
-} from './brr-decoder-utils';
+import { BRRBlockHeader, ADSREnvelope } from '../types/audio-types';
+import { getStandardSampleRate } from './brr-decoder-utils';
 import { writeFileSync } from 'fs';
 
 const SAMPLE_RATE = getStandardSampleRate();
@@ -40,37 +32,37 @@ class ADSRProcessor {
     }
 
     switch (this.state) {
-    case 'attack':
-      if (this.config.attack === 15) {
-        this.envelope += 1024; // Linear increase +1024 at rate 31
-      } else {
-        this.envelope += 32; // Linear increase +32 at specified rate
-      }
-      if (this.envelope >= 2047) {
-        this.envelope = 2047;
-        this.state = 'decay';
-      }
-      break;
+      case 'attack':
+        if (this.config.attack === 15) {
+          this.envelope += 1024; // Linear increase +1024 at rate 31
+        } else {
+          this.envelope += 32; // Linear increase +32 at specified rate
+        }
+        if (this.envelope >= 2047) {
+          this.envelope = 2047;
+          this.state = 'decay';
+        }
+        break;
 
-    case 'decay':
-      this.envelope -= Math.max(1, (this.envelope - 1) >> 8);
-      if ((this.envelope >> 8) <= this.config.sustain) {
-        this.state = 'sustain';
-      }
-      break;
-
-    case 'sustain':
-      if (this.config.release > 0) {
+      case 'decay':
         this.envelope -= Math.max(1, (this.envelope - 1) >> 8);
-      }
-      break;
+        if ((this.envelope >> 8) <= this.config.sustain) {
+          this.state = 'sustain';
+        }
+        break;
 
-    case 'release':
-      this.envelope -= 8;
-      if (this.envelope < 0) {
-        this.envelope = 0;
-      }
-      break;
+      case 'sustain':
+        if (this.config.release > 0) {
+          this.envelope -= Math.max(1, (this.envelope - 1) >> 8);
+        }
+        break;
+
+      case 'release':
+        this.envelope -= 8;
+        if (this.envelope < 0) {
+          this.envelope = 0;
+        }
+        break;
     }
 
     return this.envelope / 2047.0;
@@ -104,11 +96,11 @@ class BRRDecoder {
 
   private initADSR(params: Partial<ADSREnvelope>): ADSREnvelope {
     return {
-      attack: params.attack || 15,
-      decay: params.decay || 7,
-      sustain: params.sustain || 7,
-      release: params.release || 0,
-      enabled: params.enabled || true
+      attack: params.attack ?? 15,
+      decay: params.decay ?? 7,
+      sustain: params.sustain ?? 7,
+      release: params.release ?? 0,
+      enabled: params.enabled ?? true
     };
   }
 

@@ -1,6 +1,6 @@
 /**
  * Input Validation Module
- * 
+ *
  * Provides comprehensive validation for all user inputs
  * to prevent runtime errors and improve user experience.
  */
@@ -11,7 +11,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 
 export class InputValidator {
-  
+
   /**
    * Validate ROM file path and accessibility
    */
@@ -26,7 +26,7 @@ export class InputValidator {
     try {
       await fs.promises.access(romPath, fs.constants.R_OK);
       const stats = await fs.promises.stat(romPath);
-      
+
       if (!stats.isFile()) {
         return Err(new DisassemblerError(
           DisassemblerErrorType.INVALID_ROM_FORMAT,
@@ -36,7 +36,7 @@ export class InputValidator {
 
       const ext = path.extname(romPath).toLowerCase();
       const validExtensions = ['.smc', '.sfc', '.fig', '.bin'];
-      
+
       if (!validExtensions.includes(ext)) {
         return Err(new DisassemblerError(
           DisassemblerErrorType.INVALID_ROM_FORMAT,
@@ -47,14 +47,14 @@ export class InputValidator {
       // Check file size (SNES ROMs are typically 512KB to 8MB)
       const maxSize = 8 * 1024 * 1024; // 8MB
       const minSize = 32 * 1024; // 32KB
-      
+
       if (stats.size > maxSize) {
         return Err(new DisassemblerError(
           DisassemblerErrorType.INVALID_ROM_FORMAT,
           `ROM file too large: ${stats.size} bytes (max: ${maxSize})`
         ));
       }
-      
+
       if (stats.size < minSize) {
         return Err(new DisassemblerError(
           DisassemblerErrorType.INVALID_ROM_FORMAT,
@@ -131,7 +131,7 @@ export class InputValidator {
   static async validateOutputDirectory(outputDir: string): Promise<Result<string, DisassemblerError>> {
     try {
       const resolvedPath = path.resolve(outputDir);
-      
+
       // Check if directory exists
       try {
         const stats = await fs.promises.stat(resolvedPath);
@@ -175,7 +175,7 @@ export class InputValidator {
   /**
    * Validate CLI options
    */
-  static async validateCLIOptions(options: CLIOptions): Promise<Result<CLIOptions, DisassemblerError[]>> {
+  static validateCLIOptions(options: CLIOptions): Result<CLIOptions, DisassemblerError[]> {
     const errors: DisassemblerError[] = [];
 
     // Validate output format
@@ -194,7 +194,7 @@ export class InputValidator {
       const validAssetTypes = ['graphics', 'audio', 'text'];
       const requestedTypes = options.assetTypes.split(',').map(t => t.trim());
       const invalidTypes = requestedTypes.filter(t => !validAssetTypes.includes(t));
-      
+
       if (invalidTypes.length > 0) {
         errors.push(new DisassemblerError(
           DisassemblerErrorType.OUTPUT_ERROR,

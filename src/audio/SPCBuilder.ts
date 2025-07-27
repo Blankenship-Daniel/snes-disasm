@@ -14,11 +14,8 @@
  */
 
 import {
-  SPCFile,
-  SPCHeader,
   VoiceConfig,
   SampleDirectoryEntry,
-  DSPState,
   DSP_REGISTERS
 } from '../types/audio-types';
 
@@ -405,8 +402,7 @@ export class SPCBuilder {
    */
   public static createSimpleSPC(
     samples: SPCSample[],
-    voices?: Partial<VoiceConfig>[],
-    filename?: string
+    voices?: Partial<VoiceConfig>[]
   ): SPCBuilder {
     const builder = new SPCBuilder();
 
@@ -414,8 +410,8 @@ export class SPCBuilder {
     const sampleDir: SampleDirectoryEntry[] = [];
     for (let i = 0; i < samples.length; i++) {
       const sample = samples[i];
-      const startAddr = sample.startAddress || (0x0400 + (i * 0x1000));
-      const loopAddr = sample.loopAddress || startAddr;
+      const startAddr = sample.startAddress ?? (0x0400 + (i * 0x1000));
+      const loopAddr = sample.loopAddress ?? startAddr;
 
       builder.loadBRRSample(sample.brrData, startAddr);
       sampleDir.push({ startAddress: startAddr, loopAddress: loopAddr });
@@ -429,10 +425,10 @@ export class SPCBuilder {
         const voiceCfg = voices[i];
         builder.setupVoice(
           i,
-          voiceCfg.sourceNumber || 0,
-          voiceCfg.leftVolume || 0x7F,
-          voiceCfg.rightVolume || 0x7F,
-          voiceCfg.pitch || 0x1000,
+          voiceCfg.sourceNumber ?? 0,
+          voiceCfg.leftVolume ?? 0x7F,
+          voiceCfg.rightVolume ?? 0x7F,
+          voiceCfg.pitch ?? 0x1000,
           voiceCfg.adsr?.attack !== undefined ?
             ((voiceCfg.adsr.attack & 0xF) << 4) | (voiceCfg.adsr.decay & 0x7) : 0x8F,
           voiceCfg.adsr?.sustain !== undefined ?

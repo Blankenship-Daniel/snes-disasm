@@ -1,27 +1,27 @@
 /**
  * Interactive Preferences Manager
- * 
+ *
  * Provides an interactive interface for managing user preferences
  * for advanced options, ensuring a personalized experience.
  */
 
 import { intro, outro, select, text, confirm, multiselect, isCancel, cancel, note } from '@clack/prompts';
 import chalk from 'chalk';
-import { sessionManager, UserPreferences } from './session-manager';
-import * as path from 'path';
+import { sessionManager } from './session-manager';
 
 export class PreferencesManager {
-  
+
   /**
    * Run the interactive preferences configuration interface
    */
   async runPreferencesInterface(): Promise<void> {
     await sessionManager.load();
-    
+
     intro(chalk.bgBlue.black(' ⚙️  User Preferences Configuration ⚙️  '));
-    
+
     try {
-      while (true) {
+      let shouldContinue = true;
+      while (shouldContinue) {
         const action = await select({
           message: 'What would you like to configure?',
           options: [
@@ -39,14 +39,15 @@ export class PreferencesManager {
             { value: 'exit', label: '❌ Exit', hint: 'Save and exit preferences' }
           ]
         });
-        
+
         if (isCancel(action) || action === 'exit') {
+          shouldContinue = false;
           break;
         }
-        
+
         switch (action) {
           case 'view':
-            await this.viewPreferences();
+            this.viewPreferences();
             break;
           case 'basic':
             await this.configureBasicSettings();
@@ -80,9 +81,9 @@ export class PreferencesManager {
             break;
         }
       }
-      
+
       outro(chalk.green('✅ Preferences saved! Your settings will be applied to future sessions.'));
-      
+
     } catch (error) {
       if (isCancel(error)) {
         cancel('Preferences configuration cancelled.');
@@ -91,21 +92,21 @@ export class PreferencesManager {
       }
     }
   }
-  
+
   /**
    * Display current preferences
    */
-  private async viewPreferences(): Promise<void> {
+  private viewPreferences(): void {
     const summary = sessionManager.getPreferencesSummary();
     note(summary, 'Current Preferences');
   }
-  
+
   /**
    * Configure basic settings
    */
   private async configureBasicSettings(): Promise<void> {
     const currentPrefs = sessionManager.getPreferences();
-    
+
     const defaultFormat = await select({
       message: 'Default output format:',
       options: [
@@ -116,47 +117,48 @@ export class PreferencesManager {
         { value: 'json', label: 'JSON Data', hint: 'Machine-readable JSON format' },
         { value: 'markdown', label: 'Markdown Documentation', hint: 'Human-readable documentation' }
       ],
-      initialValue: currentPrefs.defaultFormat || 'ca65'
+      initialValue: currentPrefs.defaultFormat ?? 'ca65'
     });
-    
+
     if (isCancel(defaultFormat)) return;
-    
+
     const defaultOutputDir = await text({
       message: 'Default output directory:',
       placeholder: './output',
-      defaultValue: currentPrefs.defaultOutputDir || './output'
+      defaultValue: currentPrefs.defaultOutputDir ?? './output'
     });
-    
+
     if (isCancel(defaultOutputDir)) return;
-    
+
     const maxRecentFiles = await text({
       message: 'Maximum recent files to track:',
       placeholder: '10',
-      defaultValue: (currentPrefs.maxRecentFiles || 10).toString(),
+      defaultValue: (currentPrefs.maxRecentFiles ?? 10).toString(),
       validate: (value) => {
         const num = parseInt(value);
         if (isNaN(num) || num < 1 || num > 50) {
           return 'Please enter a number between 1 and 50';
         }
+        return undefined;
       }
     });
-    
+
     if (isCancel(maxRecentFiles)) return;
-    
+
     const showHelp = await confirm({
       message: 'Show contextual help by default?',
       initialValue: currentPrefs.showHelp !== false
     });
-    
+
     if (isCancel(showHelp)) return;
-    
+
     const confirmActions = await confirm({
       message: 'Confirm destructive actions?',
       initialValue: currentPrefs.confirmActions !== false
     });
-    
+
     if (isCancel(confirmActions)) return;
-    
+
     // Update preferences
     sessionManager.updatePreferences({
       defaultFormat: defaultFormat as string,
@@ -165,16 +167,16 @@ export class PreferencesManager {
       showHelp: showHelp as boolean,
       confirmActions: confirmActions as boolean
     });
-    
+
     note('✅ Basic settings updated successfully!', 'Success');
   }
-  
+
   /**
    * Configure advanced analysis options
    */
   private async configureAdvancedOptions(): Promise<void> {
     const currentOptions = sessionManager.getAdvancedOptions();
-    
+
     const selectedOptions = await multiselect({
       message: 'Select advanced options to enable by default:',
       options: [
@@ -197,16 +199,16 @@ export class PreferencesManager {
         ...(currentOptions.quality ? ['quality'] : [])
       ] : []
     });
-    
+
     if (isCancel(selectedOptions)) return;
-    
+
     const disableAI = await confirm({
       message: 'Disable AI features by default?',
-      initialValue: currentOptions?.disableAI || false
+      initialValue: currentOptions?.disableAI ?? false
     });
-    
+
     if (isCancel(disableAI)) return;
-    
+
     const options = selectedOptions as string[];
     await sessionManager.updateAdvancedOptions({
       analysis: options.includes('analysis'),
@@ -218,16 +220,16 @@ export class PreferencesManager {
       quality: options.includes('quality'),
       disableAI: disableAI as boolean
     });
-    
+
     note('✅ Advanced options updated successfully!', 'Success');
   }
-  
+
   /**
    * Configure asset extraction preferences
    */
   private async configureAssetPreferences(): Promise<void> {
     const currentPrefs = sessionManager.getAssetPreferences();
-    
+
     const defaultAssetTypes = await multiselect({
       message: 'Default asset types to extract:',
       options: [
@@ -236,11 +238,11 @@ export class PreferencesManager {
         { value: 'text', label: '📝 Text', hint: 'Dialogue and strings' }
       ],
       required: false,
-      initialValues: currentPrefs?.defaultAssetTypes || []
+      initialValues: currentPrefs?.defaultAssetTypes ?? []
     });
-    
+
     if (isCancel(defaultAssetTypes)) return;
-    
+
     const defaultAssetFormats = await multiselect({
       message: 'Default graphics formats to extract:',
       options: [
@@ -249,96 +251,98 @@ export class PreferencesManager {
         { value: '8bpp', label: '8BPP', hint: '8 bits per pixel' }
       ],
       required: false,
-      initialValues: currentPrefs?.defaultAssetFormats || ['4bpp']
+      initialValues: currentPrefs?.defaultAssetFormats ?? ['4bpp']
     });
-    
+
     if (isCancel(defaultAssetFormats)) return;
-    
+
     const defaultAssetOutputDir = await text({
       message: 'Default asset output directory:',
       placeholder: './assets',
-      defaultValue: currentPrefs?.defaultAssetOutputDir || './assets'
+      defaultValue: currentPrefs?.defaultAssetOutputDir ?? './assets'
     });
-    
+
     if (isCancel(defaultAssetOutputDir)) return;
-    
+
     await sessionManager.updateAssetPreferences({
       defaultAssetTypes: defaultAssetTypes as string[],
       defaultAssetFormats: defaultAssetFormats as string[],
       defaultAssetOutputDir: defaultAssetOutputDir as string
     });
-    
+
     note('✅ Asset preferences updated successfully!', 'Success');
   }
-  
+
   /**
    * Configure BRR audio preferences
    */
   private async configureBRRPreferences(): Promise<void> {
     const currentPrefs = sessionManager.getBRRPreferences();
-    
+
     const defaultSampleRate = await text({
       message: 'Default sample rate for BRR decoding (Hz):',
       placeholder: '32000',
-      defaultValue: (currentPrefs?.defaultSampleRate || 32000).toString(),
+      defaultValue: (currentPrefs?.defaultSampleRate ?? 32000).toString(),
       validate: (value) => {
         const num = parseInt(value);
         if (isNaN(num) || num < 1000 || num > 96000) {
           return 'Please enter a sample rate between 1000 and 96000 Hz';
         }
+        return undefined;
       }
     });
-    
+
     if (isCancel(defaultSampleRate)) return;
-    
+
     const enableLooping = await confirm({
       message: 'Enable BRR loop processing by default?',
       initialValue: currentPrefs?.enableLooping !== false
     });
-    
+
     if (isCancel(enableLooping)) return;
-    
+
     const maxSamples = await text({
       message: 'Maximum samples to decode:',
       placeholder: '1000000',
-      defaultValue: (currentPrefs?.maxSamples || 1000000).toString(),
+      defaultValue: (currentPrefs?.maxSamples ?? 1000000).toString(),
       validate: (value) => {
         const num = parseInt(value);
         if (isNaN(num) || num < 1000) {
           return 'Please enter a number of at least 1000 samples';
         }
+        return undefined;
       }
     });
-    
+
     if (isCancel(maxSamples)) return;
-    
+
     const defaultOutputFormat = await select({
       message: 'Default output format for BRR decoding:',
       options: [
         { value: 'wav', label: 'WAV', hint: 'Standard WAV format' },
         { value: 'flac', label: 'FLAC', hint: 'Lossless compression' }
       ],
-      initialValue: currentPrefs?.defaultOutputFormat || 'wav'
+      initialValue: currentPrefs?.defaultOutputFormat ?? 'wav'
     });
-    
+
     if (isCancel(defaultOutputFormat)) return;
-    
+
     await sessionManager.updateBRRPreferences({
       defaultSampleRate: parseInt(defaultSampleRate as string),
       enableLooping: enableLooping as boolean,
       maxSamples: parseInt(maxSamples as string),
       defaultOutputFormat: defaultOutputFormat as string
     });
-    
+
     note('✅ BRR preferences updated successfully!', 'Success');
   }
-  
+
   /**
    * Configure analysis preferences
    */
   private async configureAnalysisPreferences(): Promise<void> {
     const currentPrefs = sessionManager.getAnalysisPreferences();
-    
+
     const defaultAnalysisTypes = await multiselect({
       message: 'Default analysis types to run:',
       options: [
@@ -349,49 +353,49 @@ export class PreferencesManager {
         { value: 'ai-patterns', label: '🤖 AI Pattern Recognition', hint: 'Use AI for pattern detection' }
       ],
       required: false,
-      initialValues: currentPrefs?.defaultAnalysisTypes || []
+      initialValues: currentPrefs?.defaultAnalysisTypes ?? []
     });
-    
+
     if (isCancel(defaultAnalysisTypes)) return;
-    
+
     const defaultAnalysisOutputDir = await text({
       message: 'Default analysis output directory:',
       placeholder: './analysis',
-      defaultValue: currentPrefs?.defaultAnalysisOutputDir || './analysis'
+      defaultValue: currentPrefs?.defaultAnalysisOutputDir ?? './analysis'
     });
-    
+
     if (isCancel(defaultAnalysisOutputDir)) return;
-    
+
     const generateHtmlReports = await confirm({
       message: 'Generate HTML reports by default?',
       initialValue: currentPrefs?.generateHtmlReports !== false
     });
-    
+
     if (isCancel(generateHtmlReports)) return;
-    
+
     const includeQualityMetrics = await confirm({
       message: 'Include quality metrics in analysis?',
       initialValue: currentPrefs?.includeQualityMetrics !== false
     });
-    
+
     if (isCancel(includeQualityMetrics)) return;
-    
+
     await sessionManager.updateAnalysisPreferences({
       defaultAnalysisTypes: defaultAnalysisTypes as string[],
       defaultAnalysisOutputDir: defaultAnalysisOutputDir as string,
       generateHtmlReports: generateHtmlReports as boolean,
       includeQualityMetrics: includeQualityMetrics as boolean
     });
-    
+
     note('✅ Analysis preferences updated successfully!', 'Success');
   }
-  
+
   /**
    * Configure output format preferences
    */
   private async configureFormatPreferences(): Promise<void> {
     const currentPrefs = sessionManager.getFormatPreferences();
-    
+
     const formatOptions = await multiselect({
       message: 'Default output format options:',
       options: [
@@ -408,9 +412,9 @@ export class PreferencesManager {
         ...(currentPrefs?.useCustomLabels !== false ? ['useCustomLabels'] : [])
       ]
     });
-    
+
     if (isCancel(formatOptions)) return;
-    
+
     const options = formatOptions as string[];
     await sessionManager.updateFormatPreferences({
       includeComments: options.includes('includeComments'),
@@ -418,16 +422,16 @@ export class PreferencesManager {
       generateSymbols: options.includes('generateSymbols'),
       useCustomLabels: options.includes('useCustomLabels')
     });
-    
+
     note('✅ Format preferences updated successfully!', 'Success');
   }
-  
+
   /**
    * Configure UI preferences
    */
   private async configureUIPreferences(): Promise<void> {
     const currentPrefs = sessionManager.getUIPreferences();
-    
+
     const uiOptions = await multiselect({
       message: 'UI/UX preferences:',
       options: [
@@ -446,9 +450,9 @@ export class PreferencesManager {
         ...(currentPrefs?.autoSaveResults ? ['autoSaveResults'] : [])
       ]
     });
-    
+
     if (isCancel(uiOptions)) return;
-    
+
     const options = uiOptions as string[];
     await sessionManager.updateUIPreferences({
       preferInteractiveMode: options.includes('preferInteractiveMode'),
@@ -457,23 +461,23 @@ export class PreferencesManager {
       compactOutput: options.includes('compactOutput'),
       autoSaveResults: options.includes('autoSaveResults')
     });
-    
+
     note('✅ UI preferences updated successfully!', 'Success');
   }
-  
+
   /**
    * Configure AI preferences
    */
   private async configureAIPreferences(): Promise<void> {
     const currentPrefs = sessionManager.getAIPreferences();
-    
+
     const enableAIFeatures = await confirm({
       message: 'Enable AI features globally?',
       initialValue: currentPrefs?.enableAIFeatures !== false
     });
-    
+
     if (isCancel(enableAIFeatures)) return;
-    
+
     if (!enableAIFeatures) {
       await sessionManager.updateAIPreferences({
         enableAIFeatures: false
@@ -481,21 +485,22 @@ export class PreferencesManager {
       note('✅ AI features disabled globally.', 'Success');
       return;
     }
-    
+
     const aiConfidenceThreshold = await text({
       message: 'AI confidence threshold (0.0-1.0):',
       placeholder: '0.7',
-      defaultValue: (currentPrefs?.aiConfidenceThreshold || 0.7).toString(),
+      defaultValue: (currentPrefs?.aiConfidenceThreshold ?? 0.7).toString(),
       validate: (value) => {
         const num = parseFloat(value);
         if (isNaN(num) || num < 0 || num > 1) {
           return 'Please enter a number between 0.0 and 1.0';
         }
+        return undefined;
       }
     });
-    
+
     if (isCancel(aiConfidenceThreshold)) return;
-    
+
     const aiOptions = await multiselect({
       message: 'AI feature options:',
       options: [
@@ -508,9 +513,9 @@ export class PreferencesManager {
         ...(currentPrefs?.generateAIDocumentation !== false ? ['generateAIDocumentation'] : [])
       ]
     });
-    
+
     if (isCancel(aiOptions)) return;
-    
+
     const options = aiOptions as string[];
     await sessionManager.updateAIPreferences({
       enableAIFeatures: true,
@@ -518,10 +523,10 @@ export class PreferencesManager {
       useContextualNaming: options.includes('useContextualNaming'),
       generateAIDocumentation: options.includes('generateAIDocumentation')
     });
-    
+
     note('✅ AI preferences updated successfully!', 'Success');
   }
-  
+
   /**
    * Handle import/export operations
    */
@@ -533,18 +538,18 @@ export class PreferencesManager {
         { value: 'import', label: '📥 Import Preferences', hint: 'Load preferences from file' }
       ]
     });
-    
+
     if (isCancel(action)) return;
-    
+
     if (action === 'export') {
       const exportPath = await text({
         message: 'Export file path:',
         placeholder: './snes-disasm-preferences.json',
         defaultValue: './snes-disasm-preferences.json'
       });
-      
+
       if (isCancel(exportPath)) return;
-      
+
       try {
         await sessionManager.exportPreferences(exportPath as string);
         note(`✅ Preferences exported to: ${exportPath}`, 'Success');
@@ -558,17 +563,18 @@ export class PreferencesManager {
         validate: (value) => {
           if (!value) return 'File path is required';
           // Basic validation - could be enhanced with file existence check
+          return undefined;
         }
       });
-      
+
       if (isCancel(importPath)) return;
-      
+
       const confirmImport = await confirm({
         message: 'This will overwrite your current preferences. Continue?'
       });
-      
+
       if (isCancel(confirmImport) || !confirmImport) return;
-      
+
       try {
         await sessionManager.importPreferences(importPath as string);
         note(`✅ Preferences imported from: ${importPath}`, 'Success');
@@ -577,7 +583,7 @@ export class PreferencesManager {
       }
     }
   }
-  
+
   /**
    * Reset preferences to defaults
    */
@@ -585,9 +591,9 @@ export class PreferencesManager {
     const confirmReset = await confirm({
       message: 'Are you sure you want to reset all preferences to defaults? This cannot be undone.'
     });
-    
+
     if (isCancel(confirmReset) || !confirmReset) return;
-    
+
     await sessionManager.resetPreferences();
     note('✅ All preferences have been reset to defaults.', 'Success');
   }

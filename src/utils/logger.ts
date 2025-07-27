@@ -1,6 +1,6 @@
 /**
  * Central Logger Configuration for SNES Disassembler
- * 
+ *
  * Provides a robust logging system using Pino with:
  * - Environment-specific configuration
  * - Structured logging with context
@@ -63,7 +63,7 @@ const getDefaultConfig = (): LoggerConfig => {
 // Create the main logger instance
 const config = getDefaultConfig();
 
-const pinoConfig: any = {
+const pinoConfig: pino.LoggerOptions = {
   level: config.level,
   timestamp: config.timestamp ? pino.stdTimeFunctions.isoTime : false,
   formatters: {
@@ -103,7 +103,7 @@ export class Logger {
 
   constructor(component: string, parentLogger?: pino.Logger) {
     this.component = component;
-    this.logger = (parentLogger || baseLogger).child({ component });
+    this.logger = (parentLogger ?? baseLogger).child({ component });
   }
 
   // Basic logging methods
@@ -111,7 +111,7 @@ export class Logger {
     this.logger.fatal(data, message);
   }
 
-  error(message: string, error?: Error | any): void {
+  error(message: string, error?: Error | Record<string, unknown>): void {
     if (error instanceof Error) {
       this.logger.error({ err: error }, message);
     } else {
@@ -119,19 +119,19 @@ export class Logger {
     }
   }
 
-  warn(message: string, data?: any): void {
+  warn(message: string, data?: Record<string, unknown>): void {
     this.logger.warn(data, message);
   }
 
-  info(message: string, data?: any): void {
+  info(message: string, data?: Record<string, unknown>): void {
     this.logger.info(data, message);
   }
 
-  debug(message: string, data?: any): void {
+  debug(message: string, data?: Record<string, unknown>): void {
     this.logger.debug(data, message);
   }
 
-  trace(message: string, data?: any): void {
+  trace(message: string, data?: Record<string, unknown>): void {
     this.logger.trace(data, message);
   }
 
@@ -143,23 +143,23 @@ export class Logger {
       startTime: performance.now(),
       metadata
     };
-    
+
     this.performanceTrackers.set(trackingId, context);
     this.debug(`Started performance tracking for ${operation}`, { trackingId, metadata });
-    
+
     return trackingId;
   }
 
   endPerformanceTracking(trackingId: string, additionalData?: any): number | null {
     const context = this.performanceTrackers.get(trackingId);
     if (!context) {
-      this.warn(`Performance tracking context not found`, { trackingId });
+      this.warn('Performance tracking context not found', { trackingId });
       return null;
     }
 
     const endTime = performance.now();
     const duration = endTime - context.startTime;
-    
+
     this.info(`Completed ${context.operation}`, {
       duration: `${duration.toFixed(2)}ms`,
       trackingId,
@@ -189,7 +189,7 @@ export class Logger {
     });
   }
 
-  logAnalysisResult(analysisType: string, result: any): void {
+  logAnalysisResult(analysisType: string, result: Record<string, unknown>): void {
     this.info(`Analysis completed: ${analysisType}`, result);
   }
 
@@ -251,8 +251,8 @@ export function createLogger(component: string): Logger {
   return new Logger(component);
 }
 
-// Utility function to log application startup
-function logApplicationStartup(version?: string, config?: any): void {
+// Utility functions for application lifecycle logging
+export function logApplicationStartup(version?: string, config?: any): void {
   mainLogger.info('🚀 SNES Disassembler starting up', {
     version,
     nodeVersion: process.version,
@@ -262,8 +262,7 @@ function logApplicationStartup(version?: string, config?: any): void {
   });
 }
 
-// Utility function to log application shutdown
-function logApplicationShutdown(exitCode: number = 0): void {
+export function logApplicationShutdown(exitCode: number = 0): void {
   mainLogger.info('🛑 SNES Disassembler shutting down', { exitCode });
 }
 

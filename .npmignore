@@ -1,0 +1,148 @@
+# Source files (since we're publishing compiled JS)
+src/
+*.ts
+!*.d.ts
+
+# Test files and directories
+tests/
+test/
+__tests__/
+*.test.js
+*.test.ts
+*.spec.js
+*.spec.ts
+test-*.js
+test-*.ts
+
+# Test ROMs and game files
+*.smc
+*.sfc
+*.fig
+*.rom
+test-roms/
+roms/
+snes_games/
+output/
+
+# Development configuration files
+tsconfig.json
+tsconfig.*.json
+jest.config.js
+.eslintrc.js
+.eslintrc.json
+.eslintrc.yaml
+.eslintrc.yml
+eslint.config.*
+.prettierrc
+.prettierrc.*
+prettier.config.*
+.editorconfig
+
+# Build and development tools
+webpack.config.js
+rollup.config.js
+vite.config.js
+babel.config.js
+.babelrc
+.babelrc.*
+
+# Documentation source files (keep README.md but exclude others)
+docs/
+documentation/
+.context.md
+CLAUDE.md
+INTERACTIVE_CLI.md
+
+# GitHub workflows and templates
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+
+# OS files
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Environment files
+.env
+.env.*
+!.env.example
+
+# Development dependencies and cache
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Coverage and testing output
+coverage/
+.nyc_output/
+*.lcov
+junit.xml
+
+# Build artifacts we don't want to publish
+.tsbuildinfo
+*.tsbuildinfo
+build/
+dist/**/*.map
+dist/**/*.tsbuildinfo
+
+# Linting and formatting cache
+.eslintcache
+.prettiercache
+
+# Temporary files
+tmp/
+temp/
+.cache/
+.parcel-cache/
+
+# Log files
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Development scripts
+scripts/dev/
+scripts/test/
+
+# Example files (if they contain ROMs or sensitive data)
+examples/roms/
+examples/*.smc
+examples/*.sfc
+
+# MCP configuration (development only)
+.mcp.json
+
+# Development command files
+.claude/
+
+# Backup files
+*.backup
+*.bak
+*.orig
+
+# Development directories
+output/
+dist-dev/

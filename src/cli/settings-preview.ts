@@ -1,6 +1,6 @@
 /**
  * Settings Preview and Confirmation System
- * 
+ *
  * Provides detailed preview of operations before execution
  */
 
@@ -18,14 +18,14 @@ export interface OperationSettings {
 
 export function generateSettingsPreview(settings: OperationSettings): string {
   const { romFile, operations, options, estimatedTime, outputSize } = settings;
-  
+
   let preview = '';
-  
+
   // ROM Information
   preview += chalk.bold.cyan('📁 ROM Information:\n');
   preview += `  File: ${chalk.white(romFile)}\n`;
   preview += `  Size: ${chalk.dim('Analyzing...')}\n\n`;
-  
+
   // Operations to Perform
   preview += chalk.bold.cyan('🔧 Operations:\n');
   operations.forEach(op => {
@@ -33,22 +33,22 @@ export function generateSettingsPreview(settings: OperationSettings): string {
     preview += `  ${chalk.green('✓')} ${opName}\n`;
   });
   preview += '\n';
-  
+
   // Output Settings
   preview += chalk.bold.cyan('📤 Output Settings:\n');
-  preview += `  Format: ${chalk.white(options.format || 'ca65')}\n`;
-  preview += `  Directory: ${chalk.white(options.outputDir || './output')}\n`;
-  
-  if (options.start || options.end) {
-    preview += `  Address Range: ${chalk.white(`$${options.start || '8000'} - $${options.end || 'FFFF'}`)}\n`;
+  preview += `  Format: ${chalk.white(options.format ?? 'ca65')}\n`;
+  preview += `  Directory: ${chalk.white(options.outputDir ?? './output')}\n`;
+
+  if (options.start ?? options.end) {
+    preview += `  Address Range: ${chalk.white(`$${options.start ?? '8000'} - $${options.end ?? 'FFFF'}`)}\n`;
   }
-  
+
   preview += '\n';
-  
+
   // Advanced Features
   if (hasAdvancedFeatures(options)) {
     preview += chalk.bold.cyan('⚡ Advanced Features:\n');
-    
+
     if (options.analysis) {
       preview += `  ${chalk.green('✓')} Full Analysis\n`;
     }
@@ -65,14 +65,14 @@ export function generateSettingsPreview(settings: OperationSettings): string {
       preview += `  ${chalk.green('✓')} Generate Documentation\n`;
     }
     if (options.extractAssets) {
-      preview += `  ${chalk.green('✓')} Extract Assets (${options.assetTypes || 'all'})\n`;
+      preview += `  ${chalk.green('✓')} Extract Assets (${options.assetTypes ?? 'all'})\n`;
     }
-    
+
     preview += '\n';
   }
-  
+
   // Performance Estimates
-  if (estimatedTime || outputSize) {
+  if (estimatedTime ?? outputSize) {
     preview += chalk.bold.cyan('⏱️ Estimates:\n');
     if (estimatedTime) {
       preview += `  Processing Time: ${chalk.white(formatTime(estimatedTime))}\n`;
@@ -82,26 +82,26 @@ export function generateSettingsPreview(settings: OperationSettings): string {
     }
     preview += '\n';
   }
-  
+
   return preview;
 }
 
 export async function confirmSettings(settings: OperationSettings): Promise<boolean> {
   const preview = generateSettingsPreview(settings);
-  
+
   note(preview, chalk.bold('Operation Summary'));
-  
+
   const confirmed = await confirm({
     message: 'Proceed with these settings?'
   });
-  
+
   return !!confirmed;
 }
 
 export function calculateEstimatedTime(romSize: number, operations: string[]): number {
   // Base time estimation in seconds
   let baseTime = Math.max(5, romSize / (1024 * 1024) * 10); // 10 seconds per MB
-  
+
   // Add time for each operation
   operations.forEach(op => {
     switch (op) {
@@ -119,13 +119,13 @@ export function calculateEstimatedTime(romSize: number, operations: string[]): n
         break;
     }
   });
-  
+
   return Math.round(baseTime);
 }
 
 export function estimateOutputSize(romSize: number, operations: string[], options: CLIOptions): string {
   let totalSize = 0;
-  
+
   operations.forEach(op => {
     switch (op) {
       case 'disassemble':
@@ -146,7 +146,7 @@ export function estimateOutputSize(romSize: number, operations: string[], option
         break;
     }
   });
-  
+
   return formatFileSize(totalSize);
 }
 
@@ -157,17 +157,17 @@ function getOperationDisplayName(operation: string): string {
     'brr-decode': '🎵 Decode BRR Audio',
     'analysis': '🔍 Advanced Analysis'
   };
-  
-  return displayNames[operation] || operation;
+
+  return displayNames[operation] ?? operation;
 }
 
 function hasAdvancedFeatures(options: CLIOptions): boolean {
   return !!(
-    options.analysis ||
-    options.enhancedDisasm ||
-    options.bankAware ||
-    options.detectFunctions ||
-    options.generateDocs ||
+    options.analysis ??
+    options.enhancedDisasm ??
+    options.bankAware ??
+    options.detectFunctions ??
+    options.generateDocs ??
     options.extractAssets
   );
 }
@@ -178,14 +178,14 @@ function formatTime(seconds: number): string {
   } else if (seconds < 3600) {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
-    return remainingSeconds > 0 
-      ? `${minutes}m ${remainingSeconds}s` 
+    return remainingSeconds > 0
+      ? `${minutes}m ${remainingSeconds}s`
       : `${minutes} minutes`;
   } else {
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
-    return minutes > 0 
-      ? `${hours}h ${minutes}m` 
+    return minutes > 0
+      ? `${hours}h ${minutes}m`
       : `${hours} hours`;
   }
 }
@@ -194,22 +194,22 @@ function formatFileSize(bytes: number): string {
   const units = ['B', 'KB', 'MB', 'GB'];
   let size = bytes;
   let unitIndex = 0;
-  
+
   while (size >= 1024 && unitIndex < units.length - 1) {
     size /= 1024;
     unitIndex++;
   }
-  
+
   return `${size.toFixed(1)} ${units[unitIndex]}`;
 }
 
 export function generateOperationSummary(
-  operations: string[], 
-  romFile: string, 
+  operations: string[],
+  romFile: string,
   options: CLIOptions
 ): OperationSettings {
   const romSize = 4 * 1024 * 1024; // Assume 4MB ROM for estimation
-  
+
   return {
     romFile,
     operations,

@@ -1,4 +1,3 @@
-import { BRRBlockHeader } from '../types/audio-types';
 
 // =============================================================================
 // Custom Error Types
@@ -11,16 +10,6 @@ export class BRRDecodingError extends Error {
   constructor(message: string) {
     super(message);
     this.name = 'BRRDecodingError';
-  }
-}
-
-/**
- * Error thrown when BRR file format is invalid
- */
-class BRRFormatError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = 'BRRFormatError';
   }
 }
 
@@ -200,46 +189,6 @@ export function decodeBrrFile(
 // Sample Rate Conversion Helpers
 // =============================================================================
 
-/**
- * Convert sample rate using linear interpolation
- */
-function convertSampleRate(
-  samples: number[],
-  fromRate: number,
-  toRate: number
-): number[] {
-  if (fromRate === toRate) {
-    return samples;
-  }
-
-  if (fromRate <= 0 || toRate <= 0) {
-    throw new SampleRateConversionError('Sample rates must be positive');
-  }
-
-  const ratio = fromRate / toRate;
-  const outputLength = Math.floor(samples.length / ratio);
-  const output: number[] = [];
-
-  for (let i = 0; i < outputLength; i++) {
-    const sourceIndex = i * ratio;
-    const lowerIndex = Math.floor(sourceIndex);
-    const upperIndex = Math.min(lowerIndex + 1, samples.length - 1);
-    const fraction = sourceIndex - lowerIndex;
-
-    if (lowerIndex >= samples.length) {
-      break;
-    }
-
-    // Linear interpolation
-    const lowerSample = samples[lowerIndex] || 0;
-    const upperSample = samples[upperIndex] || 0;
-    const interpolatedSample = lowerSample + (upperSample - lowerSample) * fraction;
-
-    output.push(Math.round(interpolatedSample));
-  }
-
-  return output;
-}
 
 /**
  * Convert sample rate using Gaussian interpolation (higher quality)
@@ -309,66 +258,4 @@ export function calculatePitchRatio(pitch: number): number {
 // BRR Block Parsing Utilities
 // =============================================================================
 
-/**
- * Parse BRR block header from a single byte
- */
-function parseBrrHeader(header: number): BRRBlockHeader {
-  return {
-    range: header >> 4,
-    filter: (header >> 2) & 0x03,
-    loop: (header & 2) !== 0,
-    end: (header & 1) !== 0
-  };
-}
-
-/**
- * Validate BRR block data
- */
-function validateBrrBlock(data: Uint8Array): boolean {
-  if (data.length !== 9) {
-    return false;
-  }
-
-  const header = data[0];
-  const range = header >> 4;
-  const filter = (header >> 2) & 0x03;
-
-  // Range should be 0-12 (13-15 are invalid)
-  if (range > 12) {
-    return false;
-  }
-
-  // Filter should be 0-3
-  if (filter > 3) {
-    return false;
-  }
-
-  return true;
-}
-
-/**
- * Extract all BRR blocks from data
- */
-function extractBrrBlocks(data: Uint8Array): BRRBlock[] {
-  const blocks: BRRBlock[] = [];
-  let position = 0;
-
-  while (position + 9 <= data.length) {
-    const blockData = data.slice(position, position + 9);
-    if (!validateBrrBlock(blockData)) {
-      throw new BRRFormatError(`Invalid BRR block at position ${position}`);
-    }
-
-    const block = new BRRBlock(blockData);
-    blocks.push(block);
-    position += 9;
-
-    // Stop if we hit an end block
-    if (block.endFlag) {
-      break;
-    }
-  }
-
-  return blocks;
-}
 
