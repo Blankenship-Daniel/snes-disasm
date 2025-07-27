@@ -1,12 +1,8 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.createDefaultFlags = createDefaultFlags;
-exports.flagsToByte = flagsToByte;
-exports.byteToFlags = byteToFlags;
 exports.applyREP = applyREP;
 exports.applySEP = applySEP;
-exports.describeFlagChanges = describeFlagChanges;
-exports.formatFlags = formatFlags;
 /**
  * Create default processor flags for power-on state
  */

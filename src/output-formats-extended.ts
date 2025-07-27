@@ -1,6 +1,6 @@
 /**
  * Phase 4: Extended Output Formats
- * 
+ *
  * Additional output formats for documentation, analysis, and integration:
  * - HTML with hyperlinked cross-references
  * - JSON export for external tools
@@ -25,7 +25,7 @@ export class HTMLFormatter extends OutputFormatter {
 
   format(lines: DisassemblyLine[]): string {
     const output: string[] = [];
-    
+
     // HTML Document structure
     output.push('<!DOCTYPE html>');
     output.push('<html lang="en">');
@@ -38,7 +38,7 @@ export class HTMLFormatter extends OutputFormatter {
     output.push('</style>');
     output.push('</head>');
     output.push('<body>');
-    
+
     // Header section
     output.push('<div class="header">');
     output.push(`<h1>SNES ROM Disassembly: ${this.rom.header.title}</h1>`);
@@ -57,7 +57,7 @@ export class HTMLFormatter extends OutputFormatter {
       output.push('<div class="sidebar">');
       output.push('<h3>Symbols</h3>');
       output.push('<div class="symbol-list">');
-      
+
       const sortedSymbols = Array.from(this.symbols.entries()).sort((a, b) => a[0] - b[0]);
       for (const [address, symbol] of sortedSymbols) {
         const cssClass = symbol.type.toLowerCase();
@@ -71,11 +71,11 @@ export class HTMLFormatter extends OutputFormatter {
     // Main disassembly content
     output.push('<div class="main-content">');
     output.push('<div class="disassembly">');
-    
+
     for (const line of lines) {
       output.push(this.formatHTMLLine(line));
     }
-    
+
     output.push('</div>');
     output.push('</div>');
 
@@ -86,7 +86,7 @@ export class HTMLFormatter extends OutputFormatter {
       output.push('<table class="xref-table">');
       output.push('<thead><tr><th>From</th><th>To</th><th>Type</th><th>Instruction</th></tr></thead>');
       output.push('<tbody>');
-      
+
       for (const ref of this.crossRefs) {
         output.push('<tr>');
         output.push(`<td><a href="#addr_${ref.fromAddress.toString(16)}">${this.formatAddress(ref.fromAddress)}</a></td>`);
@@ -95,7 +95,7 @@ export class HTMLFormatter extends OutputFormatter {
         output.push(`<td>${ref.instruction || ''}</td>`);
         output.push('</tr>');
       }
-      
+
       output.push('</tbody>');
       output.push('</table>');
       output.push('</div>');
@@ -146,36 +146,36 @@ export class HTMLFormatter extends OutputFormatter {
   private formatHTMLLine(line: DisassemblyLine): string {
     const addressId = `addr_${line.address.toString(16)}`;
     const hasLabel = !!line.label;
-    
+
     let output = `<div class="line${hasLabel ? ' has-label' : ''}" id="${addressId}">`;
-    
+
     // Add label if present
     if (line.label) {
       output += `<span class="label">${line.label}:</span>`;
     }
-    
+
     // Format address
     output += `<span class="address">${this.formatAddress(line.address)}:</span> `;
-    
+
     // Format bytes if requested
     if (this.options.includeBytes) {
       output += `<span class="bytes">${this.formatBytes(line.bytes).padEnd(12)}</span> `;
     }
-    
+
     // Format instruction
     output += `<span class="mnemonic">${line.instruction.mnemonic.toUpperCase()}</span>`;
-    
+
     // Format operand
     const operandStr = this.formatHTMLOperand(line);
     if (operandStr) {
       output += ` ${operandStr}`;
     }
-    
+
     // Add comment
     if (this.options.includeComments && line.comment) {
       output += ` <span class="comment">; ${line.comment}</span>`;
     }
-    
+
     output += '</div>';
     return output;
   }
@@ -266,10 +266,10 @@ export class XMLFormatter extends OutputFormatter {
 
   format(lines: DisassemblyLine[]): string {
     const output: string[] = [];
-    
+
     output.push('<?xml version="1.0" encoding="UTF-8"?>');
     output.push('<snes-disassembly>');
-    
+
     // Metadata
     output.push('  <metadata>');
     output.push(`    <title>${this.escapeXML(this.rom.header.title)}</title>`);
@@ -279,7 +279,7 @@ export class XMLFormatter extends OutputFormatter {
     if (this.rom.cartridgeInfo.specialChip) {
       output.push(`    <special-chip>${this.rom.cartridgeInfo.specialChip}</special-chip>`);
     }
-    output.push(`    <generated-by>SNES Disassembler</generated-by>`);
+    output.push('    <generated-by>SNES Disassembler</generated-by>');
     output.push(`    <generated-at>${new Date().toISOString()}</generated-at>`);
     output.push('  </metadata>');
 
@@ -319,40 +319,40 @@ export class XMLFormatter extends OutputFormatter {
     output.push('  <disassembly>');
     for (const line of lines) {
       output.push(`    <line address="0x${line.address.toString(16).toUpperCase().padStart(6, '0')}">`);
-      
+
       if (line.label) {
         output.push(`      <label>${this.escapeXML(line.label)}</label>`);
       }
-      
+
       output.push('      <bytes>');
       for (const byte of line.bytes) {
         output.push(`        <byte>0x${byte.toString(16).toUpperCase().padStart(2, '0')}</byte>`);
       }
       output.push('      </bytes>');
-      
+
       output.push('      <instruction>');
       output.push(`        <opcode>0x${line.instruction.opcode.toString(16).toUpperCase().padStart(2, '0')}</opcode>`);
       output.push(`        <mnemonic>${line.instruction.mnemonic}</mnemonic>`);
       output.push(`        <addressing-mode>${line.instruction.addressingMode}</addressing-mode>`);
       output.push(`        <byte-count>${line.instruction.bytes}</byte-count>`);
-      
-      const cycles = typeof line.instruction.cycles === 'number' ? 
+
+      const cycles = typeof line.instruction.cycles === 'number' ?
         line.instruction.cycles : line.instruction.cycles.base;
       output.push(`        <cycles>${cycles}</cycles>`);
       output.push('      </instruction>');
-      
+
       if (line.operand !== undefined) {
         output.push(`      <operand value="0x${line.operand.toString(16).toUpperCase()}">${this.formatOperand(line)}</operand>`);
       }
-      
+
       if (line.comment) {
         output.push(`      <comment>${this.escapeXML(line.comment)}</comment>`);
       }
-      
+
       output.push('    </line>');
     }
     output.push('  </disassembly>');
-    
+
     output.push('</snes-disassembly>');
 
     return output.join('\n');
@@ -379,7 +379,7 @@ export class CSVFormatter extends OutputFormatter {
 
   format(lines: DisassemblyLine[]): string {
     const output: string[] = [];
-    
+
     // CSV Header
     const headers = [
       'Address',
@@ -398,9 +398,9 @@ export class CSVFormatter extends OutputFormatter {
       'Label',
       'Comment'
     ];
-    
+
     output.push(headers.join(','));
-    
+
     // CSV Data
     for (const line of lines) {
       const row = [
@@ -413,8 +413,8 @@ export class CSVFormatter extends OutputFormatter {
         `"${line.instruction.mnemonic}"`,
         `"${line.instruction.addressingMode}"`,
         line.instruction.bytes.toString(),
-        typeof line.instruction.cycles === 'number' ? 
-          line.instruction.cycles.toString() : 
+        typeof line.instruction.cycles === 'number' ?
+          line.instruction.cycles.toString() :
           line.instruction.cycles.base.toString(),
         line.operand?.toString() || '',
         line.operand ? `"${line.operand.toString(16).toUpperCase()}"` : '""',
@@ -422,7 +422,7 @@ export class CSVFormatter extends OutputFormatter {
         line.label ? `"${line.label}"` : '""',
         line.comment ? `"${line.comment.replace(/"/g, '""')}"` : '""'
       ];
-      
+
       output.push(row.join(','));
     }
 
@@ -441,7 +441,7 @@ export class MarkdownFormatter extends OutputFormatter {
 
   format(lines: DisassemblyLine[]): string {
     const output: string[] = [];
-    
+
     // Markdown Header
     output.push(`# SNES ROM Disassembly: ${this.rom.header.title}`);
     output.push('');
@@ -463,7 +463,7 @@ export class MarkdownFormatter extends OutputFormatter {
       output.push('');
       output.push('| Address | Name | Type | Scope | Description |');
       output.push('|---------|------|------|-------|-------------|');
-      
+
       const sortedSymbols = Array.from(this.symbols.entries()).sort((a, b) => a[0] - b[0]);
       for (const [address, symbol] of sortedSymbols) {
         const desc = symbol.description || '';
@@ -476,36 +476,36 @@ export class MarkdownFormatter extends OutputFormatter {
     output.push('## Disassembly');
     output.push('');
     output.push('```assembly');
-    
+
     for (const line of lines) {
       let lineStr = '';
-      
+
       // Add label if present
       if (line.label) {
         output.push(`${line.label}:`);
       }
-      
+
       // Format instruction line
       lineStr += `${this.formatAddress(line.address)}: `;
-      
+
       if (this.options.includeBytes) {
         lineStr += `${this.formatBytes(line.bytes).padEnd(12)} `;
       }
-      
+
       lineStr += `${line.instruction.mnemonic.toUpperCase().padEnd(4)}`;
-      
+
       const operandStr = this.formatOperand(line);
       if (operandStr) {
         lineStr += ` ${operandStr}`;
       }
-      
+
       if (this.options.includeComments && line.comment) {
         lineStr = lineStr.padEnd(40) + ` ; ${line.comment}`;
       }
-      
+
       output.push(lineStr);
     }
-    
+
     output.push('```');
     output.push('');
 
@@ -515,7 +515,7 @@ export class MarkdownFormatter extends OutputFormatter {
       output.push('');
       output.push('| From | To | Type | Instruction |');
       output.push('|------|----|----|-------------|');
-      
+
       for (const ref of this.crossRefs) {
         output.push(`| ${this.formatAddress(ref.fromAddress)} | ${this.formatAddress(ref.toAddress)} | ${ref.type} | ${ref.instruction || ''} |`);
       }
@@ -528,29 +528,29 @@ export class MarkdownFormatter extends OutputFormatter {
 
 // Update the factory to include new formats
 export class ExtendedOutputFormatterFactory {
-  static create(format: string, rom: SNESRom, symbols?: Map<number, SymbolTableEntry>, 
-                crossRefs?: CrossReference[], options?: OutputOptions): OutputFormatter {
+  static create(format: string, rom: SNESRom, symbols?: Map<number, SymbolTableEntry>,
+    crossRefs?: CrossReference[], options?: OutputOptions): OutputFormatter {
     switch (format.toLowerCase()) {
-      case 'ca65':
-        return new CA65Formatter(rom, symbols, crossRefs, options);
-      case 'wla-dx':
-      case 'wladx':
-        return new WLADXFormatter(rom, symbols, crossRefs, options);
-      case 'bass':
-        return new BassFormatter(rom, symbols, crossRefs, options);
-      case 'html':
-        return new HTMLFormatter(rom, symbols, crossRefs, options);
-      case 'json':
-        return new JSONFormatter(rom, symbols, crossRefs, options);
-      case 'xml':
-        return new XMLFormatter(rom, symbols, crossRefs, options);
-      case 'csv':
-        return new CSVFormatter(rom, symbols, crossRefs, options);
-      case 'markdown':
-      case 'md':
-        return new MarkdownFormatter(rom, symbols, crossRefs, options);
-      default:
-        throw new Error(`Unsupported output format: ${format}`);
+    case 'ca65':
+      return new CA65Formatter(rom, symbols, crossRefs, options);
+    case 'wla-dx':
+    case 'wladx':
+      return new WLADXFormatter(rom, symbols, crossRefs, options);
+    case 'bass':
+      return new BassFormatter(rom, symbols, crossRefs, options);
+    case 'html':
+      return new HTMLFormatter(rom, symbols, crossRefs, options);
+    case 'json':
+      return new JSONFormatter(rom, symbols, crossRefs, options);
+    case 'xml':
+      return new XMLFormatter(rom, symbols, crossRefs, options);
+    case 'csv':
+      return new CSVFormatter(rom, symbols, crossRefs, options);
+    case 'markdown':
+    case 'md':
+      return new MarkdownFormatter(rom, symbols, crossRefs, options);
+    default:
+      throw new Error(`Unsupported output format: ${format}`);
     }
   }
 
@@ -560,4 +560,4 @@ export class ExtendedOutputFormatterFactory {
 }
 
 // Re-export classes from output-formatters.ts for convenience
-export { CA65Formatter, WLADXFormatter, BassFormatter, OutputFormatter, SymbolTableEntry, CrossReference, OutputOptions } from './output-formatters';
+export { CA65Formatter, WLADXFormatter, BassFormatter, SymbolTableEntry, CrossReference, OutputOptions } from './output-formatters';

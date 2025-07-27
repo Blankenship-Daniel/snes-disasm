@@ -163,7 +163,7 @@ class AnalysisEngine {
     analyzeDataStructures(lines) {
         // Detect pointer tables
         this.detectPointerTables(lines);
-        // Detect jump tables  
+        // Detect jump tables
         this.detectJumpTables(lines);
         // Detect graphics data patterns
         this.detectGraphicsData(lines);
@@ -399,7 +399,7 @@ class AnalysisEngine {
             ['PHB', 'PHK', 'PLB'], // Bank switching prologue
             ['REP', 'SEP'], // Processor flag setup
             ['PHA', 'PHX', 'PHY'], // Register preservation
-            ['PHP'], // Processor status preservation
+            ['PHP'] // Processor status preservation
         ];
         for (let i = 0; i < lines.length - 2; i++) {
             const sequence = [
@@ -528,7 +528,7 @@ class AnalysisEngine {
             if (line.instruction.mnemonic === 'STA' && line.operand !== undefined) {
                 const graphicsRegisters = [
                     0x2118, // VMDATAL
-                    0x2119, // VMDATAH 
+                    0x2119, // VMDATAH
                     0x2122, // CGDATA
                     0x2104 // OAMDATA
                 ];
@@ -1073,16 +1073,16 @@ class AnalysisEngine {
         const opcode = line.instruction.opcode;
         // Analyze the byte pattern to guess data type
         if (opcode === 0x00)
-            return "NULL/PADDING";
+            return 'NULL/PADDING';
         if (opcode === 0xFF)
-            return "FILL BYTE";
+            return 'FILL BYTE';
         if ((opcode & 0xF0) === 0x20 || (opcode & 0xF0) === 0x30)
-            return "ASCII TEXT";
+            return 'ASCII TEXT';
         if (opcode < 0x20)
-            return "CONTROL DATA";
+            return 'CONTROL DATA';
         if ((opcode & 0x0F) === (opcode >> 4))
-            return "PATTERN DATA";
-        return "BINARY DATA";
+            return 'PATTERN DATA';
+        return 'BINARY DATA';
     }
     generateBranchTargetLabels(lines) {
         const targets = new Map();
@@ -1166,7 +1166,7 @@ class AnalysisEngine {
         }
         // DMA operations
         if (this.isDMAOperation(line, lines, index)) {
-            return "DMA transfer setup";
+            return 'DMA transfer setup';
         }
         // Graphics operations
         if (this.isGraphicsOperation(line)) {
@@ -1174,30 +1174,30 @@ class AnalysisEngine {
         }
         // Audio operations
         if (this.isAudioOperation(line)) {
-            return "Audio/SPC communication";
+            return 'Audio/SPC communication';
         }
         return null;
     }
     describeFlagOperation(value, isSet) {
         const flags = [];
         if (value & 0x80)
-            flags.push("N");
+            flags.push('N');
         if (value & 0x40)
-            flags.push("V");
+            flags.push('V');
         if (value & 0x20)
-            flags.push("M");
+            flags.push('M');
         if (value & 0x10)
-            flags.push("X");
+            flags.push('X');
         if (value & 0x08)
-            flags.push("D");
+            flags.push('D');
         if (value & 0x04)
-            flags.push("I");
+            flags.push('I');
         if (value & 0x02)
-            flags.push("Z");
+            flags.push('Z');
         if (value & 0x01)
-            flags.push("C");
-        const action = isSet ? "Set" : "Clear";
-        return `${action} flags: ${flags.join(", ")}`;
+            flags.push('C');
+        const action = isSet ? 'Set' : 'Clear';
+        return `${action} flags: ${flags.join(', ')}`;
     }
     isHardwareRegister(address) {
         return (address >= 0x2100 && address <= 0x21FF) || // PPU registers
@@ -1206,41 +1206,41 @@ class AnalysisEngine {
     }
     describeHardwareRegister(address, operation) {
         const registerMap = {
-            0x2100: "INIDISP - Screen display",
-            0x2101: "OBSEL - Object size and pattern",
-            0x2102: "OAMADDL - OAM address low",
-            0x2103: "OAMADDH - OAM address high",
-            0x2104: "OAMDATA - OAM data",
-            0x2105: "BGMODE - BG mode and character size",
-            0x2106: "MOSAIC - Mosaic size and enable",
-            0x2107: "BG1SC - BG1 screen base and size",
-            0x2108: "BG2SC - BG2 screen base and size",
-            0x2109: "BG3SC - BG3 screen base and size",
-            0x210A: "BG4SC - BG4 screen base and size",
-            0x210B: "BG12NBA - BG1&2 character base",
-            0x210C: "BG34NBA - BG3&4 character base",
-            0x210D: "BG1HOFS - BG1 horizontal scroll",
-            0x210E: "BG1VOFS - BG1 vertical scroll",
-            0x2118: "VMDATAL - VRAM data low",
-            0x2119: "VMDATAH - VRAM data high",
-            0x2122: "CGDATA - Color palette data",
-            0x4200: "NMITIMEN - NMI/IRQ enable",
-            0x4201: "WRIO - I/O port",
-            0x4202: "WRMPYA - Multiplicand A",
-            0x4203: "WRMPYB - Multiplicand B",
-            0x4204: "WRDIVL - Dividend low",
-            0x4205: "WRDIVH - Dividend high",
-            0x4206: "WRDIVB - Divisor",
-            0x4207: "HTIMEL - H-timer low",
-            0x4208: "HTIMEH - H-timer high",
-            0x4209: "VTIMEL - V-timer low",
-            0x420A: "VTIMEH - V-timer high",
-            0x420B: "MDMAEN - DMA enable",
-            0x420C: "HDMAEN - HDMA enable"
+            0x2100: 'INIDISP - Screen display',
+            0x2101: 'OBSEL - Object size and pattern',
+            0x2102: 'OAMADDL - OAM address low',
+            0x2103: 'OAMADDH - OAM address high',
+            0x2104: 'OAMDATA - OAM data',
+            0x2105: 'BGMODE - BG mode and character size',
+            0x2106: 'MOSAIC - Mosaic size and enable',
+            0x2107: 'BG1SC - BG1 screen base and size',
+            0x2108: 'BG2SC - BG2 screen base and size',
+            0x2109: 'BG3SC - BG3 screen base and size',
+            0x210A: 'BG4SC - BG4 screen base and size',
+            0x210B: 'BG12NBA - BG1&2 character base',
+            0x210C: 'BG34NBA - BG3&4 character base',
+            0x210D: 'BG1HOFS - BG1 horizontal scroll',
+            0x210E: 'BG1VOFS - BG1 vertical scroll',
+            0x2118: 'VMDATAL - VRAM data low',
+            0x2119: 'VMDATAH - VRAM data high',
+            0x2122: 'CGDATA - Color palette data',
+            0x4200: 'NMITIMEN - NMI/IRQ enable',
+            0x4201: 'WRIO - I/O port',
+            0x4202: 'WRMPYA - Multiplicand A',
+            0x4203: 'WRMPYB - Multiplicand B',
+            0x4204: 'WRDIVL - Dividend low',
+            0x4205: 'WRDIVH - Dividend high',
+            0x4206: 'WRDIVB - Divisor',
+            0x4207: 'HTIMEL - H-timer low',
+            0x4208: 'HTIMEH - H-timer high',
+            0x4209: 'VTIMEL - V-timer low',
+            0x420A: 'VTIMEH - V-timer high',
+            0x420B: 'MDMAEN - DMA enable',
+            0x420C: 'HDMAEN - HDMA enable'
         };
         const regName = registerMap[address];
         if (regName) {
-            const action = operation === 'STA' ? "Write to" : "Read from";
+            const action = operation === 'STA' ? 'Write to' : 'Read from';
             return `${action} ${regName}`;
         }
         return `${operation} hardware register $${address.toString(16).toUpperCase()}`;
@@ -1266,16 +1266,16 @@ class AnalysisEngine {
     describeGraphicsOperation(line) {
         const operand = line.operand;
         if (operand >= 0x2118 && operand <= 0x2119)
-            return "VRAM upload";
+            return 'VRAM upload';
         if (operand === 0x2122)
-            return "Palette upload";
+            return 'Palette upload';
         if (operand === 0x2104)
-            return "Sprite data upload";
+            return 'Sprite data upload';
         if (operand >= 0x210D && operand <= 0x2114)
-            return "Background scroll";
+            return 'Background scroll';
         if (operand >= 0x2107 && operand <= 0x210A)
-            return "Background tilemap";
-        return "Graphics setup";
+            return 'Background tilemap';
+        return 'Graphics setup';
     }
     isAudioOperation(line) {
         const operand = line.operand;
@@ -1291,19 +1291,19 @@ class AnalysisEngine {
             if (this.isFunctionPrologue(lines.slice(i, i + 3))) {
                 lines[i].comment = lines[i].comment
                     ? `${lines[i].comment} ; Function prologue`
-                    : `; Function prologue`;
+                    : '; Function prologue';
             }
             // Function epilogue pattern
             if (this.isFunctionEpilogue(lines.slice(i, i + 2))) {
                 lines[i].comment = lines[i].comment
                     ? `${lines[i].comment} ; Function epilogue`
-                    : `; Function epilogue`;
+                    : '; Function epilogue';
             }
             // Stack frame setup
             if (this.isStackFrameSetup(lines.slice(i, i + 3))) {
                 lines[i].comment = lines[i].comment
                     ? `${lines[i].comment} ; Stack frame setup`
-                    : `; Stack frame setup`;
+                    : '; Stack frame setup';
             }
         }
     }
@@ -1340,7 +1340,7 @@ class AnalysisEngine {
             if (line.instruction.mnemonic === 'RTI') {
                 line.comment = line.comment
                     ? `${line.comment} ; Interrupt return`
-                    : `; Interrupt return`;
+                    : '; Interrupt return';
                 // Mark the function containing this as interrupt handler
                 this.markAsInterruptHandler(line.address, lines);
             }
@@ -1348,12 +1348,12 @@ class AnalysisEngine {
             if (line.instruction.mnemonic === 'CLI') {
                 line.comment = line.comment
                     ? `${line.comment} ; Enable interrupts`
-                    : `; Enable interrupts`;
+                    : '; Enable interrupts';
             }
             if (line.instruction.mnemonic === 'SEI') {
                 line.comment = line.comment
                     ? `${line.comment} ; Disable interrupts`
-                    : `; Disable interrupts`;
+                    : '; Disable interrupts';
             }
         }
     }
@@ -1407,12 +1407,12 @@ class AnalysisEngine {
     }
     getRegisterName(address) {
         const names = {
-            0x2100: "INIDISP", 0x2101: "OBSEL", 0x2102: "OAMADDL", 0x2103: "OAMADDH",
-            0x2104: "OAMDATA", 0x2105: "BGMODE", 0x2106: "MOSAIC", 0x2107: "BG1SC",
-            0x2108: "BG2SC", 0x2109: "BG3SC", 0x210A: "BG4SC", 0x210B: "BG12NBA",
-            0x210C: "BG34NBA", 0x210D: "BG1HOFS", 0x210E: "BG1VOFS", 0x2118: "VMDATAL",
-            0x2119: "VMDATAH", 0x2122: "CGDATA", 0x4200: "NMITIMEN", 0x4201: "WRIO",
-            0x4202: "WRMPYA", 0x4203: "WRMPYB", 0x420B: "MDMAEN", 0x420C: "HDMAEN"
+            0x2100: 'INIDISP', 0x2101: 'OBSEL', 0x2102: 'OAMADDL', 0x2103: 'OAMADDH',
+            0x2104: 'OAMDATA', 0x2105: 'BGMODE', 0x2106: 'MOSAIC', 0x2107: 'BG1SC',
+            0x2108: 'BG2SC', 0x2109: 'BG3SC', 0x210A: 'BG4SC', 0x210B: 'BG12NBA',
+            0x210C: 'BG34NBA', 0x210D: 'BG1HOFS', 0x210E: 'BG1VOFS', 0x2118: 'VMDATAL',
+            0x2119: 'VMDATAH', 0x2122: 'CGDATA', 0x4200: 'NMITIMEN', 0x4201: 'WRIO',
+            0x4202: 'WRMPYA', 0x4203: 'WRMPYB', 0x420B: 'MDMAEN', 0x420C: 'HDMAEN'
         };
         return names[address] || `REG_${address.toString(16).toUpperCase()}`;
     }
@@ -1954,8 +1954,8 @@ class AnalysisEngine {
                         lines[i + 1].operand === lines[i].operand;
                 },
                 mark: (lines, i) => {
-                    lines[i].comment = `; Inline multiply by 4`;
-                    lines[i + 1].comment = `; └─ continuation`;
+                    lines[i].comment = '; Inline multiply by 4';
+                    lines[i + 1].comment = '; └─ continuation';
                 }
             },
             // 16-bit comparison
@@ -1969,10 +1969,10 @@ class AnalysisEngine {
                         lines[i + 3].instruction.mnemonic === 'LDA';
                 },
                 mark: (lines, i) => {
-                    lines[i].comment = `; Inline 16-bit compare`;
-                    lines[i + 1].comment = `; └─ low byte compare`;
-                    lines[i + 2].comment = `; └─ branch if not equal`;
-                    lines[i + 3].comment = `; └─ high byte compare`;
+                    lines[i].comment = '; Inline 16-bit compare';
+                    lines[i + 1].comment = '; └─ low byte compare';
+                    lines[i + 2].comment = '; └─ branch if not equal';
+                    lines[i + 3].comment = '; └─ high byte compare';
                 }
             }
         ];
@@ -2071,11 +2071,11 @@ class AnalysisEngine {
         for (const line of lines) {
             // Sprite OAM update pattern
             if (line.operand !== undefined && line.operand === 0x0400 && line.instruction.mnemonic === 'STX') {
-                line.comment = `; Nintendo OAM DMA trigger`;
+                line.comment = '; Nintendo OAM DMA trigger';
             }
             // Mode 7 setup
             if (line.operand !== undefined && line.operand >= 0x211B && line.operand <= 0x2120) {
-                line.comment = `; Mode 7 matrix setup`;
+                line.comment = '; Mode 7 matrix setup';
             }
         }
     }
@@ -2084,11 +2084,11 @@ class AnalysisEngine {
         for (const line of lines) {
             // Menu system patterns
             if (line.operand !== undefined && line.operand >= 0x7E1000 && line.operand <= 0x7E1FFF) {
-                line.comment = `; Menu/UI data area`;
+                line.comment = '; Menu/UI data area';
             }
             // Battle system patterns
             if (line.instruction.mnemonic === 'JSL' && line.operand && (line.operand & 0xFF0000) === 0xC00000) {
-                line.comment = `; Battle system routine`;
+                line.comment = '; Battle system routine';
             }
         }
     }
@@ -2097,7 +2097,7 @@ class AnalysisEngine {
         for (const line of lines) {
             // Capcom's specific DMA usage
             if (line.operand !== undefined && line.operand === 0x4305 && line.instruction.mnemonic === 'STA') {
-                line.comment = `; Capcom DMA size setup`;
+                line.comment = '; Capcom DMA size setup';
             }
         }
     }
@@ -2106,7 +2106,7 @@ class AnalysisEngine {
         for (const line of lines) {
             // Konami code detection patterns
             if (line.operand === 0x4218 && line.instruction.mnemonic === 'LDA') {
-                line.comment = `; Read controller 1 data`;
+                line.comment = '; Read controller 1 data';
             }
         }
     }
@@ -2118,15 +2118,15 @@ class AnalysisEngine {
                 lines[i + 1].instruction.mnemonic === 'JSR' &&
                 lines[i + 2].instruction.mnemonic === 'JSR' &&
                 lines[i + 3].instruction.mnemonic === 'JMP') {
-                lines[i].comment = `; Game loop: Update`;
-                lines[i + 1].comment = `; Game loop: Draw`;
-                lines[i + 2].comment = `; Game loop: VSync`;
-                lines[i + 3].comment = `; Game loop: Repeat`;
+                lines[i].comment = '; Game loop: Update';
+                lines[i + 1].comment = '; Game loop: Draw';
+                lines[i + 2].comment = '; Game loop: VSync';
+                lines[i + 3].comment = '; Game loop: Repeat';
             }
             // NMI handler pattern
             if (lines[i].instruction.mnemonic === 'REP' && lines[i].operand === 0x30 &&
                 lines[i + 1].instruction.mnemonic === 'PHA') {
-                lines[i].comment = `; NMI handler: Save processor state`;
+                lines[i].comment = '; NMI handler: Save processor state';
             }
         }
     }

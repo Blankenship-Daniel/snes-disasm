@@ -177,7 +177,7 @@ export const INSTRUCTION_SET: Map<number, Instruction> = new Map([
   // JSR - Jump to Subroutine
   [0x20, { opcode: 0x20, mnemonic: 'JSR', addressingMode: AddressingMode.Absolute, bytes: 3, cycles: 6 }],
   [0xFC, { opcode: 0xFC, mnemonic: 'JSR', addressingMode: AddressingMode.AbsoluteIndexedIndirect, bytes: 3, cycles: 8 }],
-  
+
   // JSL - Jump to Subroutine Long
   [0x22, { opcode: 0x22, mnemonic: 'JSL', addressingMode: AddressingMode.AbsoluteLong, bytes: 4, cycles: 8 }],
 
@@ -433,5 +433,5 @@ export const INSTRUCTION_SET: Map<number, Instruction> = new Map([
   [0xEB, { opcode: 0xEB, mnemonic: 'XBA', addressingMode: AddressingMode.Implied, bytes: 1, cycles: 3 }],
 
   // XCE - Exchange Carry and Emulation
-  [0xFB, { opcode: 0xFB, mnemonic: 'XCE', addressingMode: AddressingMode.Implied, bytes: 1, cycles: 2 }],
+  [0xFB, { opcode: 0xFB, mnemonic: 'XCE', addressingMode: AddressingMode.Implied, bytes: 1, cycles: 2 }]
 ]);

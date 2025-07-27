@@ -266,7 +266,7 @@ function createExLoROMLayout(info) {
     return createLoROMLayout(info); // Simplified for now
 }
 function createExHiROMLayout(info) {
-    // Extended HiROM - supports up to 64MB  
+    // Extended HiROM - supports up to 64MB
     // Similar to HiROM but with additional bank mappings
     return createHiROMLayout(info); // Simplified for now
 }

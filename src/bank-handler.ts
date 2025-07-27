@@ -21,17 +21,17 @@ export class BankHandler {
    */
   private detectMappingMode(cartridgeInfo: CartridgeInfo): 'LoROM' | 'HiROM' | 'ExLoROM' | 'ExHiROM' {
     switch (cartridgeInfo.type) {
-      case CartridgeType.HiROM:
-        return 'HiROM';
-      case CartridgeType.ExHiROM:
-        return 'ExHiROM';
-      case CartridgeType.LoROM:
-        return 'LoROM';
-      case CartridgeType.ExLoROM:
-        return 'ExLoROM';
-      default:
-        // Default to LoROM for unknown types
-        return 'LoROM';
+    case CartridgeType.HiROM:
+      return 'HiROM';
+    case CartridgeType.ExHiROM:
+      return 'ExHiROM';
+    case CartridgeType.LoROM:
+      return 'LoROM';
+    case CartridgeType.ExLoROM:
+      return 'ExLoROM';
+    default:
+      // Default to LoROM for unknown types
+      return 'LoROM';
     }
   }
 
@@ -40,16 +40,16 @@ export class BankHandler {
    */
   private initializeMasks(): void {
     switch (this.mappingMode) {
-      case 'LoROM':
-      case 'ExLoROM':
-        this.bankMask = 0x7F;     // Banks 00-7F accessible
-        this.addressMask = 0x7FFF; // 32KB banks (ignore bit 15)
-        break;
-      case 'HiROM':
-      case 'ExHiROM':
-        this.bankMask = 0xFF;     // Banks 00-FF accessible
-        this.addressMask = 0xFFFF; // 64KB banks (full address)
-        break;
+    case 'LoROM':
+    case 'ExLoROM':
+      this.bankMask = 0x7F;     // Banks 00-7F accessible
+      this.addressMask = 0x7FFF; // 32KB banks (ignore bit 15)
+      break;
+    case 'HiROM':
+    case 'ExHiROM':
+      this.bankMask = 0xFF;     // Banks 00-FF accessible
+      this.addressMask = 0xFFFF; // 64KB banks (full address)
+      break;
     }
   }
 
@@ -61,16 +61,16 @@ export class BankHandler {
     const offset = address & 0xFFFF;
 
     switch (this.mappingMode) {
-      case 'LoROM':
-        return this.calculateLoROMOffset(bank, offset);
-      case 'HiROM':
-        return this.calculateHiROMOffset(bank, offset);
-      case 'ExLoROM':
-        return this.calculateExLoROMOffset(bank, offset);
-      case 'ExHiROM':
-        return this.calculateExHiROMOffset(bank, offset);
-      default:
-        throw new Error(`Unsupported mapping mode: ${this.mappingMode}`);
+    case 'LoROM':
+      return this.calculateLoROMOffset(bank, offset);
+    case 'HiROM':
+      return this.calculateHiROMOffset(bank, offset);
+    case 'ExLoROM':
+      return this.calculateExLoROMOffset(bank, offset);
+    case 'ExHiROM':
+      return this.calculateExHiROMOffset(bank, offset);
+    default:
+      throw new Error(`Unsupported mapping mode: ${this.mappingMode}`);
     }
   }
 
@@ -79,16 +79,16 @@ export class BankHandler {
    */
   public romOffsetToAddress(romOffset: number): number {
     switch (this.mappingMode) {
-      case 'LoROM':
-        return this.calculateLoROMAddress(romOffset);
-      case 'HiROM':
-        return this.calculateHiROMAddress(romOffset);
-      case 'ExLoROM':
-        return this.calculateExLoROMAddress(romOffset);
-      case 'ExHiROM':
-        return this.calculateExHiROMAddress(romOffset);
-      default:
-        throw new Error(`Unsupported mapping mode: ${this.mappingMode}`);
+    case 'LoROM':
+      return this.calculateLoROMAddress(romOffset);
+    case 'HiROM':
+      return this.calculateHiROMAddress(romOffset);
+    case 'ExLoROM':
+      return this.calculateExLoROMAddress(romOffset);
+    case 'ExHiROM':
+      return this.calculateExHiROMAddress(romOffset);
+    default:
+      throw new Error(`Unsupported mapping mode: ${this.mappingMode}`);
     }
   }
 
@@ -158,7 +158,7 @@ export class BankHandler {
   private calculateExLoROMOffset(bank: number, offset: number): number {
     // For ExLoROM, we need to handle the extended addressing
     // This is similar to LoROM but with additional bank mapping
-    
+
     // Handle FastROM mirror
     if (bank >= 0x80) {
       bank = bank - 0x80;
@@ -167,13 +167,13 @@ export class BankHandler {
     // Standard LoROM mapping for banks 00-7F
     if (bank <= 0x7F && offset >= 0x8000) {
       let romOffset = (bank * 0x8000) + (offset - 0x8000);
-      
+
       // Apply bank wrapping for extended ROM sizes
       if (this.cartridgeInfo.romSize > 0x200000) { // > 2MB
         const bankCount = Math.floor(this.cartridgeInfo.romSize / 0x8000);
         romOffset = romOffset % (bankCount * 0x8000);
       }
-      
+
       return romOffset;
     }
 
@@ -187,7 +187,7 @@ export class BankHandler {
   private calculateExHiROMOffset(bank: number, offset: number): number {
     // ExHiROM extends the standard HiROM mapping
     // Additional banks are mapped in a specific pattern
-    
+
     // Standard HiROM banks
     if (bank >= 0xC0) {
       return ((bank - 0xC0) * 0x10000) + offset;
@@ -263,65 +263,65 @@ export class BankHandler {
     const ranges: Array<{ start: number; end: number; type: string }> = [];
 
     switch (this.mappingMode) {
-      case 'LoROM':
-      case 'ExLoROM':
-        // System areas
-        ranges.push({ start: 0x000000, end: 0x007FFF, type: 'SYSTEM' });
-        // ROM areas
-        for (let bank = 0; bank <= 0x7F; bank++) {
-          ranges.push({ 
-            start: (bank << 16) | 0x8000, 
-            end: (bank << 16) | 0xFFFF, 
-            type: 'ROM' 
-          });
-        }
-        // FastROM mirrors
-        for (let bank = 0x80; bank <= 0xFF; bank++) {
-          ranges.push({ 
-            start: (bank << 16) | 0x8000, 
-            end: (bank << 16) | 0xFFFF, 
-            type: 'ROM_MIRROR' 
-          });
-        }
-        break;
+    case 'LoROM':
+    case 'ExLoROM':
+      // System areas
+      ranges.push({ start: 0x000000, end: 0x007FFF, type: 'SYSTEM' });
+      // ROM areas
+      for (let bank = 0; bank <= 0x7F; bank++) {
+        ranges.push({
+          start: (bank << 16) | 0x8000,
+          end: (bank << 16) | 0xFFFF,
+          type: 'ROM'
+        });
+      }
+      // FastROM mirrors
+      for (let bank = 0x80; bank <= 0xFF; bank++) {
+        ranges.push({
+          start: (bank << 16) | 0x8000,
+          end: (bank << 16) | 0xFFFF,
+          type: 'ROM_MIRROR'
+        });
+      }
+      break;
 
-      case 'HiROM':
-      case 'ExHiROM':
-        // System areas
-        ranges.push({ start: 0x000000, end: 0x007FFF, type: 'SYSTEM' });
-        // ROM areas in banks 00-3F at $8000-$FFFF
-        for (let bank = 0x00; bank <= 0x3F; bank++) {
-          ranges.push({ 
-            start: (bank << 16) | 0x8000, 
-            end: (bank << 16) | 0xFFFF, 
-            type: 'ROM' 
-          });
-        }
-        // Direct ROM mapping in banks 40-7F
-        for (let bank = 0x40; bank <= 0x7F; bank++) {
-          ranges.push({ 
-            start: (bank << 16) | 0x0000, 
-            end: (bank << 16) | 0xFFFF, 
-            type: 'ROM' 
-          });
-        }
-        // ROM mirrors in banks 80-BF at $8000-$FFFF
-        for (let bank = 0x80; bank <= 0xBF; bank++) {
-          ranges.push({ 
-            start: (bank << 16) | 0x8000, 
-            end: (bank << 16) | 0xFFFF, 
-            type: 'ROM_MIRROR' 
-          });
-        }
-        // Direct ROM mapping in banks C0-FF
-        for (let bank = 0xC0; bank <= 0xFF; bank++) {
-          ranges.push({ 
-            start: (bank << 16) | 0x0000, 
-            end: (bank << 16) | 0xFFFF, 
-            type: 'ROM' 
-          });
-        }
-        break;
+    case 'HiROM':
+    case 'ExHiROM':
+      // System areas
+      ranges.push({ start: 0x000000, end: 0x007FFF, type: 'SYSTEM' });
+      // ROM areas in banks 00-3F at $8000-$FFFF
+      for (let bank = 0x00; bank <= 0x3F; bank++) {
+        ranges.push({
+          start: (bank << 16) | 0x8000,
+          end: (bank << 16) | 0xFFFF,
+          type: 'ROM'
+        });
+      }
+      // Direct ROM mapping in banks 40-7F
+      for (let bank = 0x40; bank <= 0x7F; bank++) {
+        ranges.push({
+          start: (bank << 16) | 0x0000,
+          end: (bank << 16) | 0xFFFF,
+          type: 'ROM'
+        });
+      }
+      // ROM mirrors in banks 80-BF at $8000-$FFFF
+      for (let bank = 0x80; bank <= 0xBF; bank++) {
+        ranges.push({
+          start: (bank << 16) | 0x8000,
+          end: (bank << 16) | 0xFFFF,
+          type: 'ROM_MIRROR'
+        });
+      }
+      // Direct ROM mapping in banks C0-FF
+      for (let bank = 0xC0; bank <= 0xFF; bank++) {
+        ranges.push({
+          start: (bank << 16) | 0x0000,
+          end: (bank << 16) | 0xFFFF,
+          type: 'ROM'
+        });
+      }
+      break;
     }
 
     return ranges;
@@ -332,7 +332,7 @@ export class BankHandler {
    */
   public isValidAddress(address: number): boolean {
     const ranges = this.getValidAddressRanges();
-    return ranges.some(range => 
+    return ranges.some(range =>
       range.type === 'ROM' && address >= range.start && address <= range.end
     );
   }
@@ -349,14 +349,14 @@ export class BankHandler {
    */
   public getBankSize(): number {
     switch (this.mappingMode) {
-      case 'LoROM':
-      case 'ExLoROM':
-        return 0x8000; // 32KB
-      case 'HiROM':
-      case 'ExHiROM':
-        return 0x10000; // 64KB
-      default:
-        return 0x8000;
+    case 'LoROM':
+    case 'ExLoROM':
+      return 0x8000; // 32KB
+    case 'HiROM':
+    case 'ExHiROM':
+      return 0x10000; // 64KB
+    default:
+      return 0x8000;
     }
   }
 
@@ -370,13 +370,13 @@ export class BankHandler {
     }
 
     switch (chipType) {
-      case 'SA-1 Super Accelerator':
-        return this.handleSA1Banking(address);
-      case 'SuperFX Graphics Support Unit':
-        return this.handleSuperFXBanking(address);
+    case 'SA-1 Super Accelerator':
+      return this.handleSA1Banking(address);
+    case 'SuperFX Graphics Support Unit':
+      return this.handleSuperFXBanking(address);
       // Add more special chip handlers as needed
-      default:
-        return null; // Use standard banking
+    default:
+      return null; // Use standard banking
     }
   }
 
@@ -424,10 +424,10 @@ export class BankHandler {
   public getBankInfo(address: number): { bank: number; offset: number; type: string; physicalAddress?: number } {
     const bank = (address >> 16) & 0xFF;
     const offset = address & 0xFFFF;
-    
+
     const ranges = this.getValidAddressRanges();
     const range = ranges.find(r => address >= r.start && address <= r.end);
-    
+
     let physicalAddress: number | undefined;
     try {
       physicalAddress = this.addressToRomOffset(address);
@@ -435,7 +435,7 @@ export class BankHandler {
       // Address is not mappable to ROM
       physicalAddress = undefined;
     }
-    
+
     return {
       bank,
       offset,
@@ -453,10 +453,10 @@ export class BankHandler {
     romSize: number;
     totalBanks: number;
     validRanges: number;
-  } {
+    } {
     const ranges = this.getValidAddressRanges();
     const romRanges = ranges.filter(r => r.type === 'ROM');
-    
+
     return {
       mode: this.mappingMode,
       bankSize: this.getBankSize(),

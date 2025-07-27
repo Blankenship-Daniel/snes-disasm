@@ -1,6 +1,6 @@
 /**
  * SNES Asset Extraction Handler
- * 
+ *
  * Handles extraction of graphics, audio, and text assets from SNES ROMs
  * with improved error handling and AI-enhanced pattern recognition.
  */
@@ -18,14 +18,14 @@ export async function extractAssets(romFile: string, options: CLIOptions, output
   try {
     // Read ROM data
     const romData = await fs.readFile(romFile);
-    
+
     // AI enhancement is enabled by default, can be disabled with --disable-ai
     const assetExtractor = new AssetExtractor(!options.disableAI);
-    
+
     // Parse asset types to extract
     const assetTypes = (options.assetTypes || 'graphics,audio,text').split(',').map(t => t.trim());
     const graphicsFormats = (options.assetFormats || '4bpp').split(',').map(f => f.trim() as GraphicsFormat);
-    
+
     const baseName = path.basename(romFile, path.extname(romFile));
     const assetDir = path.join(outputDir, `${baseName}_assets`);
     await fs.mkdir(assetDir, { recursive: true });
@@ -36,10 +36,10 @@ export async function extractAssets(romFile: string, options: CLIOptions, output
     // Extract graphics assets
     if (assetTypes.includes('graphics')) {
       const graphicsCount = await extractGraphicsAssets(
-        romData, 
-        assetExtractor, 
-        assetDir, 
-        graphicsFormats, 
+        romData,
+        assetExtractor,
+        assetDir,
+        graphicsFormats,
         options.verbose || false
       );
       totalAssetsExtracted += graphicsCount;
@@ -48,9 +48,9 @@ export async function extractAssets(romFile: string, options: CLIOptions, output
     // Extract audio assets
     if (assetTypes.includes('audio')) {
       const audioCount = await extractAudioAssets(
-        romData, 
-        assetExtractor, 
-        assetDir, 
+        romData,
+        assetExtractor,
+        assetDir,
         options.verbose || false
       );
       totalAssetsExtracted += audioCount;
@@ -59,16 +59,16 @@ export async function extractAssets(romFile: string, options: CLIOptions, output
     // Extract text assets
     if (assetTypes.includes('text')) {
       const textCount = await extractTextAssets(
-        romData, 
-        assetExtractor, 
-        assetDir, 
+        romData,
+        assetExtractor,
+        assetDir,
         options.verbose || false
       );
       totalAssetsExtracted += textCount;
     }
 
     const extractionTime = Date.now() - startTime;
-    
+
     if (options.verbose) {
       console.log(`✅ Asset extraction completed in ${extractionTime}ms`);
       console.log(`📁 Assets directory: ${assetDir}`);
@@ -92,25 +92,25 @@ async function extractGraphicsAssets(
   if (verbose) {
     console.log('  📊 Extracting graphics...');
   }
-  
+
   const graphicsDir = path.join(assetDir, 'graphics');
   await fs.mkdir(graphicsDir, { recursive: true });
-  
+
   const graphicsExtractor = assetExtractor.getGraphicsExtractor();
   let totalExtracted = 0;
-  
+
   // Extract tiles for each format
   for (const format of graphicsFormats) {
     const formatDir = path.join(graphicsDir, format);
     await fs.mkdir(formatDir, { recursive: true });
-    
+
     // Use more sophisticated region detection for graphics data
     const graphicsRegions = detectGraphicsRegions(romData, format);
-    
+
     for (const region of graphicsRegions) {
       const regionData = romData.slice(region.start, region.end);
       const tiles = await graphicsExtractor.extractTiles(regionData, format as GraphicsFormat, region.start);
-      
+
       if (tiles.length > 0) {
         // Save tile data as JSON with enhanced metadata
         const tilesData = {
@@ -130,59 +130,59 @@ async function extractGraphicsAssets(
             metadata: tile.metadata || {}
           }))
         };
-        
+
         const regionName = region.type.toLowerCase().replace(/\s+/g, '_');
         await fs.writeFile(
-          path.join(formatDir, `tiles_${regionName}.json`), 
+          path.join(formatDir, `tiles_${regionName}.json`),
           JSON.stringify(tilesData, null, 2)
         );
-        
+
         totalExtracted += tiles.length;
-        
+
         if (verbose && tiles.length > 0) {
           console.log(`    - ${format} (${region.type}): ${tiles.length} tiles extracted`);
         }
       }
     }
   }
-  
+
   // Extract palettes with improved detection
   if (romData.length > 0x1000) {
     const paletteCount = await extractPaletteData(romData, graphicsExtractor, graphicsDir, verbose);
     totalExtracted += paletteCount;
   }
-  
+
   return totalExtracted;
 }
 
 function detectGraphicsRegions(romData: Buffer, format: string): Array<{start: number, end: number, type: string}> {
   const regions = [];
-  
+
   // Standard graphics regions for different formats
   switch (format) {
-    case '2bpp':
-      regions.push(
-        { start: 0x8000, end: 0x10000, type: 'Character Data' },
-        { start: 0x20000, end: 0x30000, type: 'Background Graphics' }
-      );
-      break;
-    case '4bpp':
-      regions.push(
-        { start: 0x8000, end: 0x20000, type: 'Sprite Graphics' },
-        { start: 0x40000, end: 0x60000, type: 'Background Graphics' },
-        { start: 0x80000, end: 0xA0000, type: 'Character Data' }
-      );
-      break;
-    case '8bpp':
-      regions.push(
-        { start: 0x10000, end: 0x30000, type: 'Mode 7 Graphics' },
-        { start: 0x60000, end: 0x80000, type: 'Full Color Graphics' }
-      );
-      break;
-    default:
-      regions.push({ start: 0x8000, end: Math.min(0x20000, romData.length), type: 'General Graphics' });
+  case '2bpp':
+    regions.push(
+      { start: 0x8000, end: 0x10000, type: 'Character Data' },
+      { start: 0x20000, end: 0x30000, type: 'Background Graphics' }
+    );
+    break;
+  case '4bpp':
+    regions.push(
+      { start: 0x8000, end: 0x20000, type: 'Sprite Graphics' },
+      { start: 0x40000, end: 0x60000, type: 'Background Graphics' },
+      { start: 0x80000, end: 0xA0000, type: 'Character Data' }
+    );
+    break;
+  case '8bpp':
+    regions.push(
+      { start: 0x10000, end: 0x30000, type: 'Mode 7 Graphics' },
+      { start: 0x60000, end: 0x80000, type: 'Full Color Graphics' }
+    );
+    break;
+  default:
+    regions.push({ start: 0x8000, end: Math.min(0x20000, romData.length), type: 'General Graphics' });
   }
-  
+
   // Filter regions that actually exist in the ROM
   return regions.filter(region => region.start < romData.length && region.end <= romData.length);
 }
@@ -199,16 +199,16 @@ async function extractPaletteData(
     { start: 0x8000, end: 0x8200, type: 'Character Palettes' },
     { start: 0x10000, end: 0x10200, type: 'Background Palettes' }
   ];
-  
+
   let totalPalettes = 0;
   const allPalettes: any[] = [];
-  
+
   for (const region of paletteRegions) {
     if (region.start < romData.length) {
       const regionEnd = Math.min(region.end, romData.length);
       const paletteData = romData.slice(region.start, regionEnd);
       const palettes = graphicsExtractor.extractPalettes(paletteData, region.start);
-      
+
       if (palettes.length > 0) {
         palettes.forEach((palette: any) => {
           palette.region = region.type;
@@ -218,7 +218,7 @@ async function extractPaletteData(
       }
     }
   }
-  
+
   if (allPalettes.length > 0) {
     const palettesData = {
       count: allPalettes.length,
@@ -230,17 +230,17 @@ async function extractPaletteData(
         metadata: palette.metadata || {}
       }))
     };
-    
+
     await fs.writeFile(
       path.join(graphicsDir, 'palettes.json'),
       JSON.stringify(palettesData, null, 2)
     );
-    
+
     if (verbose) {
       console.log(`    - ${allPalettes.length} palettes extracted from ${paletteRegions.length} regions`);
     }
   }
-  
+
   return totalPalettes;
 }
 
@@ -253,30 +253,30 @@ async function extractAudioAssets(
   if (verbose) {
     console.log('  🎵 Extracting audio...');
   }
-  
+
   const audioDir = path.join(assetDir, 'audio');
   await fs.mkdir(audioDir, { recursive: true });
-  
+
   const audioExtractor = assetExtractor.getAudioExtractor();
-  
+
   // Enhanced audio region detection based on common SNES patterns
   const audioRegions = detectAudioRegions(romData);
-  
-  let allSamples: any[] = [];
-  let allSequences: any[] = [];
-  
+
+  const allSamples: any[] = [];
+  const allSequences: any[] = [];
+
   for (const region of audioRegions) {
     if (romData.length > region.start && region.start < romData.length) {
       const regionEnd = Math.min(region.end, romData.length);
       const audioData = romData.slice(region.start, regionEnd);
-      
+
       // Extract BRR samples
       const samples = await audioExtractor.extractBRRSamples(audioData, region.start);
       samples.forEach((sample: any) => {
         sample.region = region.type;
         allSamples.push(sample);
       });
-      
+
       // Extract music sequences if available
       try {
         const sequences = await audioExtractor.extractSequences(audioData, region.start);
@@ -290,15 +290,15 @@ async function extractAudioAssets(
           console.log(`    - No music sequences found in ${region.type}`);
         }
       }
-      
+
       if (verbose && (samples.length > 0 || allSequences.length > 0)) {
         console.log(`    - ${region.type}: ${samples.length} samples, ${allSequences.length || 0} sequences`);
       }
     }
   }
-  
+
   let totalExtracted = 0;
-  
+
   // Save sample data
   if (allSamples.length > 0) {
     const samplesData = {
@@ -314,12 +314,12 @@ async function extractAudioAssets(
         metadata: sample.metadata || {}
       }))
     };
-    
+
     await fs.writeFile(
       path.join(audioDir, 'samples.json'),
       JSON.stringify(samplesData, null, 2)
     );
-    
+
     // Save individual sample files
     for (let i = 0; i < allSamples.length; i++) {
       const sample = allSamples[i];
@@ -329,10 +329,10 @@ async function extractAudioAssets(
         sample.data
       );
     }
-    
+
     totalExtracted += allSamples.length;
   }
-  
+
   // Save sequence data
   if (allSequences.length > 0) {
     const sequencesData = {
@@ -346,58 +346,58 @@ async function extractAudioAssets(
         metadata: seq.metadata || {}
       }))
     };
-    
+
     await fs.writeFile(
       path.join(audioDir, 'sequences.json'),
       JSON.stringify(sequencesData, null, 2)
     );
-    
+
     totalExtracted += allSequences.length;
   }
-  
+
   if (verbose && totalExtracted > 0) {
     console.log(`    - Total audio assets: ${totalExtracted} (${allSamples.length} samples, ${allSequences.length} sequences)`);
   }
-  
+
   return totalExtracted;
 }
 
 function detectAudioRegions(romData: Buffer): Array<{start: number, end: number, type: string}> {
   const regions = [];
-  
+
   // Common SNES audio regions - more comprehensive coverage
   // Early ROM regions (headers and initial data)
   if (romData.length > 0x8000) {
     regions.push({ start: 0x0000, end: 0x8000, type: 'ROM Header & Early Data' });
   }
-  
+
   // Standard graphics/audio boundary regions
   if (romData.length > 0x20000) {
     regions.push({ start: 0x8000, end: 0x20000, type: 'Low Bank Audio/Graphics' });
   }
-  
+
   // Common audio data regions
   if (romData.length > 0x40000) {
     regions.push({ start: 0x20000, end: 0x40000, type: 'Primary Audio Bank' });
   }
-  
+
   if (romData.length > 0x80000) {
     regions.push({ start: 0x40000, end: 0x80000, type: 'Secondary Audio Bank' });
   }
-  
+
   // High ROM regions (common for audio in larger ROMs)
   if (romData.length > 0xC0000) {
     regions.push({ start: 0x80000, end: 0xC0000, type: 'Extended Audio Bank' });
   }
-  
+
   if (romData.length > 0x100000) {
     regions.push({ start: 0xC0000, end: 0x100000, type: 'SPC Engine & Samples' });
   }
-  
+
   if (romData.length > 0x200000) {
     regions.push({ start: 0x100000, end: 0x200000, type: 'Large ROM Audio Data' });
   }
-  
+
   // Add smaller scanning regions for thorough coverage
   const scanRegions = [];
   for (let addr = 0; addr < Math.min(romData.length, 0x400000); addr += 0x10000) {
@@ -405,9 +405,9 @@ function detectAudioRegions(romData: Buffer): Array<{start: number, end: number,
       scanRegions.push({ start: addr, end: addr + 0x1000, type: `Scan Region ${addr.toString(16).toUpperCase()}` });
     }
   }
-  
+
   regions.push(...scanRegions);
-  
+
   console.log(`🔍 Detected ${regions.length} audio regions to scan in ${romData.length} byte ROM`);
   return regions.filter(region => region.start < romData.length && region.end <= romData.length);
 }
@@ -421,44 +421,44 @@ async function extractTextAssets(
   if (verbose) {
     console.log('  📝 Extracting text...');
   }
-  
+
   const textDir = path.join(assetDir, 'text');
   await fs.mkdir(textDir, { recursive: true });
-  
+
   const textExtractor = assetExtractor.getTextExtractor();
   const encoding = textExtractor.detectEncoding(romData);
-  
+
   if (verbose) {
     console.log(`    - Detected encoding: ${encoding}`);
   }
-  
+
   // Extract text from multiple regions
   const textRegions = detectTextRegions(romData, encoding);
-  let allStrings: any[] = [];
-  
+  const allStrings: any[] = [];
+
   for (const region of textRegions) {
     if (region.start < romData.length) {
       const regionEnd = Math.min(region.end, romData.length);
       const regionData = romData.slice(region.start, regionEnd);
-      
+
       const strings = await textExtractor.extractStrings(regionData, encoding, region.start, 4);
       strings.forEach((str: any) => {
         str.region = region.type;
         allStrings.push(str);
       });
-      
+
       if (verbose && strings.length > 0) {
         console.log(`    - ${region.type}: ${strings.length} strings`);
       }
     }
   }
-  
+
   if (allStrings.length > 0) {
     // Remove duplicates based on text content
-    const uniqueStrings = allStrings.filter((str, index, arr) => 
+    const uniqueStrings = allStrings.filter((str, index, arr) =>
       arr.findIndex(s => s.text === str.text) === index
     );
-    
+
     const textData = {
       encoding,
       totalStrings: allStrings.length,
@@ -473,48 +473,48 @@ async function extractTextAssets(
         metadata: str.metadata || {}
       }))
     };
-    
+
     await fs.writeFile(
       path.join(textDir, 'strings.json'),
       JSON.stringify(textData, null, 2)
     );
-    
+
     // Create categorized text files
     const categories = groupStringsByCategory(uniqueStrings);
     for (const [category, strings] of Object.entries(categories)) {
       const categoryText = strings
         .map((str: any) => `[${str.address.toString(16).toUpperCase().padStart(6, '0')}] ${str.text}`)
         .join('\n');
-      
+
       await fs.writeFile(
         path.join(textDir, `${category.toLowerCase().replace(/\s+/g, '_')}.txt`),
         categoryText
       );
     }
-    
+
     // Create comprehensive readable text file
     const readableText = uniqueStrings
       .map(str => `[${str.address.toString(16).toUpperCase().padStart(6, '0')}] (${str.region}) ${str.text}`)
       .join('\n');
-    
+
     await fs.writeFile(
       path.join(textDir, 'all_strings.txt'),
       readableText
     );
-    
+
     if (verbose) {
       console.log(`    - Total: ${uniqueStrings.length} unique strings (${allStrings.length} total) in ${Object.keys(categories).length} categories`);
     }
-    
+
     return uniqueStrings.length;
   }
-  
+
   return 0;
 }
 
 function detectTextRegions(romData: Buffer, encoding: string): Array<{start: number, end: number, type: string}> {
   const regions = [];
-  
+
   // Standard text regions based on encoding
   if (encoding === 'sjis' || encoding === 'custom') {
     regions.push(
@@ -529,13 +529,13 @@ function detectTextRegions(romData: Buffer, encoding: string): Array<{start: num
       { start: 0x50000, end: 0x60000, type: 'Item Names' }
     );
   }
-  
+
   // Add regions for credits and miscellaneous text
   regions.push(
     { start: 0x80000, end: 0x90000, type: 'Credits' },
     { start: romData.length - 0x8000, end: romData.length, type: 'End Text' }
   );
-  
+
   return regions.filter(region => region.start < romData.length && region.end <= romData.length);
 }
 
@@ -548,11 +548,11 @@ function groupStringsByCategory(strings: any[]): Record<string, any[]> {
     'System': [],
     'Other': []
   };
-  
+
   strings.forEach(str => {
     const text = str.text.toLowerCase();
     const region = str.region.toLowerCase();
-    
+
     if (region.includes('dialogue') || text.includes('says') || text.includes(': ')) {
       categories['Dialogue'].push(str);
     } else if (region.includes('menu') || text.includes('select') || text.includes('option')) {
@@ -567,13 +567,13 @@ function groupStringsByCategory(strings: any[]): Record<string, any[]> {
       categories['Other'].push(str);
     }
   });
-  
+
   // Remove empty categories
   Object.keys(categories).forEach(key => {
     if (categories[key].length === 0) {
       delete categories[key];
     }
   });
-  
+
   return categories;
 }

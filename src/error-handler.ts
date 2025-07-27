@@ -1,10 +1,10 @@
 /**
  * Error Handler Module
- * 
+ *
  * Centralized error handling for the SNES disassembler
  */
 
-export enum ErrorType {
+enum ErrorType {
   PARSING_ERROR = 'PARSING_ERROR',
   VALIDATION_ERROR = 'VALIDATION_ERROR',
   IO_ERROR = 'IO_ERROR',
@@ -12,7 +12,7 @@ export enum ErrorType {
   CONFIGURATION_ERROR = 'CONFIGURATION_ERROR'
 }
 
-export interface DisassemblerError {
+interface DisassemblerError {
   type: ErrorType;
   message: string;
   context?: any;
@@ -90,7 +90,7 @@ export class ErrorHandler {
    */
   getErrorSummary(): string {
     const errorCounts = new Map<ErrorType, number>();
-    
+
     for (const error of this.errors) {
       errorCounts.set(error.type, (errorCounts.get(error.type) || 0) + 1);
     }

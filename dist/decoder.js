@@ -9,8 +9,12 @@ class InstructionDecoder {
         this.flags = (0, processor_flags_1.createDefaultFlags)();
     }
     // Legacy compatibility
-    get mFlag() { return this.flags.m; }
-    get xFlag() { return this.flags.x; }
+    get mFlag() {
+        return this.flags.m;
+    }
+    get xFlag() {
+        return this.flags.x;
+    }
     setFlags(m, x) {
         this.flags.m = m;
         this.flags.x = x;

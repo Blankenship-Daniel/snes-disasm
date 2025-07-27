@@ -1,6 +1,6 @@
 /**
  * Phase 4: Symbol Table Management System
- * 
+ *
  * Comprehensive symbol management with external file support:
  * - Symbol export/import (.sym, .mlb files)
  * - Symbol name suggestion based on usage patterns
@@ -174,9 +174,9 @@ export class SymbolManager {
   generateSymbolName(address: number, type: SymbolTableEntry['type'], context?: string): string {
     const prefix = this.getSymbolPrefix(type, address);
     const suffix = address.toString(16).toUpperCase().padStart(6, '0');
-    
+
     let baseName = `${prefix}_${suffix}`;
-    
+
     // Add context if provided
     if (context) {
       baseName = `${context}_${baseName}`;
@@ -195,18 +195,18 @@ export class SymbolManager {
 
   private getSymbolPrefix(type: SymbolTableEntry['type'], address: number): string {
     switch (type) {
-      case 'CODE':
-        return this.isVectorAddress(address) ? 'vector' : 'func';
-      case 'DATA':
-        return 'data';
-      case 'VECTOR':
-        return 'vector';
-      case 'REGISTER':
-        return 'reg';
-      case 'CONSTANT':
-        return 'const';
-      default:
-        return 'sym';
+    case 'CODE':
+      return this.isVectorAddress(address) ? 'vector' : 'func';
+    case 'DATA':
+      return 'data';
+    case 'VECTOR':
+      return 'vector';
+    case 'REGISTER':
+      return 'reg';
+    case 'CONSTANT':
+      return 'const';
+    default:
+      return 'sym';
     }
   }
 
@@ -282,30 +282,30 @@ export class SymbolManager {
     const actualFormat = format || this.getFormatFromExtension(ext);
 
     switch (actualFormat) {
-      case 'sym':
-        this.exportToSymFile(filePath);
-        break;
-      case 'mlb':
-        this.exportToMLBFile(filePath);
-        break;
-      case 'json':
-        this.exportToJSONFile(filePath);
-        break;
-      case 'csv':
-        this.exportToCSVFile(filePath);
-        break;
-      default:
-        throw new Error(`Unsupported export format: ${actualFormat}`);
+    case 'sym':
+      this.exportToSymFile(filePath);
+      break;
+    case 'mlb':
+      this.exportToMLBFile(filePath);
+      break;
+    case 'json':
+      this.exportToJSONFile(filePath);
+      break;
+    case 'csv':
+      this.exportToCSVFile(filePath);
+      break;
+    default:
+      throw new Error(`Unsupported export format: ${actualFormat}`);
     }
   }
 
   private getFormatFromExtension(ext: string): 'sym' | 'mlb' | 'json' | 'csv' {
     switch (ext) {
-      case '.sym': return 'sym';
-      case '.mlb': return 'mlb';
-      case '.json': return 'json';
-      case '.csv': return 'csv';
-      default: return 'sym';
+    case '.sym': return 'sym';
+    case '.mlb': return 'mlb';
+    case '.json': return 'json';
+    case '.csv': return 'csv';
+    default: return 'sym';
     }
   }
 
@@ -314,15 +314,15 @@ export class SymbolManager {
    */
   private exportToSymFile(filePath: string): void {
     const lines: string[] = [];
-    
+
     // Sort symbols by address
     const sortedSymbols = Array.from(this.symbols.entries()).sort((a, b) => a[0] - b[0]);
-    
+
     for (const [address, symbol] of sortedSymbols) {
       // Format: XXXXXX SymbolName
       lines.push(`${address.toString(16).toUpperCase().padStart(6, '0')} ${symbol.name}`);
     }
-    
+
     fs.writeFileSync(filePath, lines.join('\n'), 'utf8');
   }
 
@@ -331,14 +331,14 @@ export class SymbolManager {
    */
   private exportToMLBFile(filePath: string): void {
     const lines: string[] = [];
-    
+
     // Sort symbols by address
     const sortedSymbols = Array.from(this.symbols.entries()).sort((a, b) => a[0] - b[0]);
-    
+
     for (const [address, symbol] of sortedSymbols) {
       // Format: SymbolName = $XXXXXX ; Type: Description
       let line = `${symbol.name} = $${address.toString(16).toUpperCase().padStart(6, '0')}`;
-      
+
       if (symbol.type || symbol.description) {
         line += ' ;';
         if (symbol.type) {
@@ -348,10 +348,10 @@ export class SymbolManager {
           line += ` ${symbol.description}`;
         }
       }
-      
+
       lines.push(line);
     }
-    
+
     fs.writeFileSync(filePath, lines.join('\n'), 'utf8');
   }
 
@@ -370,7 +370,7 @@ export class SymbolManager {
         addressHex: address.toString(16).toUpperCase().padStart(6, '0')
       }))
     };
-    
+
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf8');
   }
 
@@ -379,13 +379,13 @@ export class SymbolManager {
    */
   private exportToCSVFile(filePath: string): void {
     const lines: string[] = [];
-    
+
     // CSV Header
     lines.push('Address,AddressHex,Name,Type,Scope,Size,Description');
-    
+
     // Sort symbols by address
     const sortedSymbols = Array.from(this.symbols.entries()).sort((a, b) => a[0] - b[0]);
-    
+
     for (const [address, symbol] of sortedSymbols) {
       const row = [
         address.toString(),
@@ -398,7 +398,7 @@ export class SymbolManager {
       ];
       lines.push(row.join(','));
     }
-    
+
     fs.writeFileSync(filePath, lines.join('\n'), 'utf8');
   }
 
@@ -414,16 +414,16 @@ export class SymbolManager {
     const actualFormat = format || this.getFormatFromExtension(ext);
 
     switch (actualFormat) {
-      case 'sym':
-        return this.importFromSymFile(filePath);
-      case 'mlb':
-        return this.importFromMLBFile(filePath);
-      case 'json':
-        return this.importFromJSONFile(filePath);
-      case 'csv':
-        return this.importFromCSVFile(filePath);
-      default:
-        throw new Error(`Unsupported import format: ${actualFormat}`);
+    case 'sym':
+      return this.importFromSymFile(filePath);
+    case 'mlb':
+      return this.importFromMLBFile(filePath);
+    case 'json':
+      return this.importFromJSONFile(filePath);
+    case 'csv':
+      return this.importFromCSVFile(filePath);
+    default:
+      throw new Error(`Unsupported import format: ${actualFormat}`);
     }
   }
 
@@ -433,15 +433,15 @@ export class SymbolManager {
   private importFromSymFile(filePath: string): BulkOperationResult {
     const content = fs.readFileSync(filePath, 'utf8');
     const lines = content.split('\n').filter(line => line.trim().length > 0);
-    
+
     const symbols = new Map<number, SymbolTableEntry>();
-    
+
     for (const line of lines) {
       const match = line.trim().match(/^([0-9A-Fa-f]{6})\s+(.+)$/);
       if (match) {
         const address = parseInt(match[1], 16);
         const name = match[2].trim();
-        
+
         symbols.set(address, {
           address,
           name,
@@ -450,7 +450,7 @@ export class SymbolManager {
         });
       }
     }
-    
+
     return this.bulkAddSymbols(symbols);
   }
 
@@ -460,9 +460,9 @@ export class SymbolManager {
   private importFromMLBFile(filePath: string): BulkOperationResult {
     const content = fs.readFileSync(filePath, 'utf8');
     const lines = content.split('\n').filter(line => line.trim().length > 0);
-    
+
     const symbols = new Map<number, SymbolTableEntry>();
-    
+
     for (const line of lines) {
       // Parse: SymbolName = $XXXXXX ; Type: Description
       const match = line.trim().match(/^([^=]+)=\s*\$([0-9A-Fa-f]+)(?:\s*;\s*(.+))?$/);
@@ -470,10 +470,10 @@ export class SymbolManager {
         const name = match[1].trim();
         const address = parseInt(match[2], 16);
         const comment = match[3]?.trim();
-        
+
         let type: SymbolTableEntry['type'] = 'CODE';
-        let description = comment;
-        
+        const description = comment;
+
         // Parse type from comment
         if (comment) {
           const typeMatch = comment.match(/Type:\s*(\w+)/i);
@@ -484,7 +484,7 @@ export class SymbolManager {
             }
           }
         }
-        
+
         symbols.set(address, {
           address,
           name,
@@ -494,7 +494,7 @@ export class SymbolManager {
         });
       }
     }
-    
+
     return this.bulkAddSymbols(symbols);
   }
 
@@ -504,15 +504,15 @@ export class SymbolManager {
   private importFromJSONFile(filePath: string): BulkOperationResult {
     const content = fs.readFileSync(filePath, 'utf8');
     const data = JSON.parse(content);
-    
+
     const symbols = new Map<number, SymbolTableEntry>();
-    
+
     if (data.symbols && Array.isArray(data.symbols)) {
       for (const symbolData of data.symbols) {
-        const address = typeof symbolData.address === 'number' ? 
-          symbolData.address : 
+        const address = typeof symbolData.address === 'number' ?
+          symbolData.address :
           parseInt(symbolData.addressHex || symbolData.address, 16);
-        
+
         symbols.set(address, {
           address,
           name: symbolData.name,
@@ -524,7 +524,7 @@ export class SymbolManager {
         });
       }
     }
-    
+
     return this.bulkAddSymbols(symbols);
   }
 
@@ -534,15 +534,15 @@ export class SymbolManager {
   private importFromCSVFile(filePath: string): BulkOperationResult {
     const content = fs.readFileSync(filePath, 'utf8');
     const lines = content.split('\n').filter(line => line.trim().length > 0);
-    
+
     if (lines.length === 0) {
       throw new Error('CSV file is empty');
     }
-    
+
     // Skip header line
     const dataLines = lines.slice(1);
     const symbols = new Map<number, SymbolTableEntry>();
-    
+
     for (const line of dataLines) {
       const columns = this.parseCSVLine(line);
       if (columns.length >= 4) {
@@ -552,7 +552,7 @@ export class SymbolManager {
         const scope = columns[4]?.replace(/"/g, '') as SymbolTableEntry['scope'] || 'GLOBAL';
         const size = columns[5] ? parseInt(columns[5]) : undefined;
         const description = columns[6]?.replace(/"/g, '').replace(/""/g, '"');
-        
+
         symbols.set(address, {
           address,
           name,
@@ -563,7 +563,7 @@ export class SymbolManager {
         });
       }
     }
-    
+
     return this.bulkAddSymbols(symbols);
   }
 
@@ -571,10 +571,10 @@ export class SymbolManager {
     const result: string[] = [];
     let current = '';
     let inQuotes = false;
-    
+
     for (let i = 0; i < line.length; i++) {
       const char = line[i];
-      
+
       if (char === '"') {
         if (inQuotes && line[i + 1] === '"') {
           current += '"';
@@ -589,7 +589,7 @@ export class SymbolManager {
         current += char;
       }
     }
-    
+
     result.push(current);
     return result;
   }
@@ -609,7 +609,7 @@ export class SymbolManager {
     total: number;
     byType: Record<string, number>;
     byScope: Record<string, number>;
-  } {
+    } {
     const stats = {
       total: this.symbols.size,
       byType: {} as Record<string, number>,

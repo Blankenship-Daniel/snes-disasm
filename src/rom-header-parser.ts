@@ -10,16 +10,16 @@ export class RomHeaderParser {
    */
   public static detectMappingMode(cartridgeInfo: CartridgeInfo): 'LoROM' | 'HiROM' | 'ExLoROM' | 'ExHiROM' {
     switch (cartridgeInfo.type) {
-      case CartridgeType.HiROM:
-        return 'HiROM';
-      case CartridgeType.ExHiROM:
-        return 'ExHiROM';
-      case CartridgeType.LoROM:
-        return 'LoROM';
-      case CartridgeType.ExLoROM:
-        return 'ExLoROM';
-      default:
-        return 'LoROM'; // Fallback to LoROM
+    case CartridgeType.HiROM:
+      return 'HiROM';
+    case CartridgeType.ExHiROM:
+      return 'ExHiROM';
+    case CartridgeType.LoROM:
+      return 'LoROM';
+    case CartridgeType.ExLoROM:
+      return 'ExLoROM';
+    default:
+      return 'LoROM'; // Fallback to LoROM
     }
   }
 
@@ -30,7 +30,7 @@ export class RomHeaderParser {
     const mapMode = data[offset + 0x15];
     const cartridgeType = data[offset + 0x16];
     const romSpeedByte = data[offset + 0x17];
-    
+
     const detectedType = detectCartridgeType(mapMode, cartridgeType);
     const memorySpeed = getMemorySpeed(mapMode);
 
@@ -41,7 +41,7 @@ export class RomHeaderParser {
       ramSize: this.calculateRAMSize(data[offset + 0x18]),
       hasBattery: hasBatteryBackup(cartridgeType),
       hasRTC: detectedType === CartridgeType.SRTC,
-      speed: memorySpeed, 
+      speed: memorySpeed,
       regions: [], // To be filled with actual memory regions
       specialChip: this.detectSpecialChip(cartridgeType)
     };
@@ -61,34 +61,34 @@ export class RomHeaderParser {
 
   private static detectSpecialChip(cartridgeType: number): string | undefined {
     switch (cartridgeType) {
-      case 0x13: case 0x14: case 0x15: case 0x1A:
-        return 'SuperFX Graphics Support Unit';
-      case 0x34: case 0x35:
-        return 'SA-1 Super Accelerator';
-      case 0x03:
-        return 'DSP-1 Digital Signal Processor';
-      case 0x05:
-        return 'DSP-2 Digital Signal Processor';
-      case 0x06:
-        return 'DSP-3 Digital Signal Processor';
-      case 0x0A:
-        return 'DSP-4 Digital Signal Processor';
-      case 0x43: case 0x45:
-        return 'S-DD1 Data Decompression';
-      case 0x55:
-        return 'S-RTC Real-Time Clock';
-      case 0xF3:
-        return 'CX4 Math Coprocessor';
-      case 0xF5:
-        return 'ST010 Graphics Processor';
-      case 0xF6:
-        return 'ST011 Graphics Processor';
-      case 0xF9:
-        return 'SPC7110 Data Decompression';
-      case 0xFE:
-        return 'MSU-1 Audio Enhancement';
-      default:
-        return undefined;
+    case 0x13: case 0x14: case 0x15: case 0x1A:
+      return 'SuperFX Graphics Support Unit';
+    case 0x34: case 0x35:
+      return 'SA-1 Super Accelerator';
+    case 0x03:
+      return 'DSP-1 Digital Signal Processor';
+    case 0x05:
+      return 'DSP-2 Digital Signal Processor';
+    case 0x06:
+      return 'DSP-3 Digital Signal Processor';
+    case 0x0A:
+      return 'DSP-4 Digital Signal Processor';
+    case 0x43: case 0x45:
+      return 'S-DD1 Data Decompression';
+    case 0x55:
+      return 'S-RTC Real-Time Clock';
+    case 0xF3:
+      return 'CX4 Math Coprocessor';
+    case 0xF5:
+      return 'ST010 Graphics Processor';
+    case 0xF6:
+      return 'ST011 Graphics Processor';
+    case 0xF9:
+      return 'SPC7110 Data Decompression';
+    case 0xFE:
+      return 'MSU-1 Audio Enhancement';
+    default:
+      return undefined;
     }
   }
 }

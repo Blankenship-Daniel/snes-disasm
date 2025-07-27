@@ -11,12 +11,16 @@ const validation_engine_1 = require("./validation-engine");
 const snes_reference_tables_1 = require("./snes-reference-tables");
 const spc_exporter_1 = require("./spc-exporter");
 const spc_state_extractor_1 = require("./spc-state-extractor");
+const logger_1 = require("./utils/logger");
 class SNESDisassembler {
     constructor(romPath, options = {}) {
         this.rom = rom_parser_1.RomParser.parse(romPath);
+        // Initialize logger for this disassembler instance
+        this.logger = (0, logger_1.createLogger)('SNESDisassembler');
         // Initialize enhanced ROM parsing for bank switching
         const mappingMode = rom_header_parser_1.RomHeaderParser.detectMappingMode(this.rom.cartridgeInfo);
-        console.log(`Detected Mapping Mode: ${mappingMode}`);
+        // Log detected mapping mode
+        this.logger.info(`Detected Mapping Mode: ${mappingMode}`);
         this.decoder = new decoder_1.InstructionDecoder();
         this.labels = options.labels || new Map();
         this.comments = options.comments || new Map();
@@ -51,7 +55,7 @@ class SNESDisassembler {
             if (this.labels.has(currentAddress)) {
                 line.label = this.labels.get(currentAddress);
             }
-            // Add comment if exists  
+            // Add comment if exists
             if (this.comments.has(currentAddress)) {
                 line.comment = this.comments.get(currentAddress);
             }
@@ -235,7 +239,8 @@ class SNESDisassembler {
      * Export analyzed SPC state to an SPC file
      */
     exportSPC(outputPath) {
-        console.log('🎵 Extracting SPC audio state from ROM...');
+        // Log SPC audio extraction
+        this.logger.info('🎵 Extracting SPC audio state from ROM...');
         // Perform full disassembly and analysis
         const lines = this.disassemble();
         this.analyze();
@@ -252,21 +257,21 @@ class SNESDisassembler {
             playTime: extractedState.metadata.playTime || 180, // 3 minutes default
             fadeLength: extractedState.metadata.fadeLength || 10000 // 10 seconds fade
         };
-        console.log(`📋 SPC Metadata:`);
-        console.log(`   Title: ${spcMetadata.gameTitle}`);
-        console.log(`   Artist: ${spcMetadata.artist}`);
-        console.log(`   Dumper: ${spcMetadata.dumperName}`);
-        console.log(`   Comments: ${spcMetadata.comments.split('\n')[0]}`);
+        // Log SPC metadata details
+        this.logger.info('📋 SPC Metadata:', spcMetadata);
         // Export SPC file using static method
         const spcBuffer = spc_exporter_1.SPCExporter.exportSPC(extractedState.spc700State, extractedState.dspState, spcMetadata);
-        console.log(`✅ SPC file exported (${spcBuffer.length} bytes)`);
-        console.log(`   RAM Size: ${extractedState.spc700State.ram?.length || 0} bytes`);
-        console.log(`   DSP Registers: ${extractedState.dspState.registers?.length || 0} registers`);
-        console.log(`   Timer States: 3 timers (timer0, timer1, timer2)`);
+        // Log SPC export success
+        this.logger.info(`✅ SPC file exported`, {
+            bufferSize: spcBuffer.length,
+            ramSize: extractedState.spc700State.ram?.length || 0,
+            dspRegisterCount: extractedState.dspState.registers?.length || 0
+        });
         // Write SPC file to disk
         const fs = require('fs');
         fs.writeFileSync(outputPath, spcBuffer);
-        console.log(`💾 SPC exported to ${outputPath}`);
+        // Log file write completion
+        this.logger.info(`💾 SPC exported to ${outputPath}`);
         return spcBuffer;
     }
     // Enhanced analysis using the analysis engine
@@ -387,8 +392,8 @@ class SNESDisassembler {
         const output = this.formatOutputAs(lines, format, options);
         // Write to file (Note: In a real implementation, you'd use fs.writeFileSync)
         // For now, we'll return the output since we can't write files directly
-        console.log(`Exporting to ${filePath} in ${format} format...`);
-        console.log(output.substring(0, 500) + '...[truncated]');
+        this.logger.info(`Exporting to ${filePath} in ${format} format...`);
+        this.logger.debug(output.substring(0, 500) + '...[truncated]');
     }
     /**
      * Get symbol manager for advanced symbol operations
@@ -408,9 +413,9 @@ class SNESDisassembler {
                 this.labels.set(address, symbol.name);
             }
         }
-        console.log(`Imported ${result.succeeded} symbols, ${result.failed} failed`);
+        this.logger.info(`Imported ${result.succeeded} symbols, ${result.failed} failed`);
         if (result.conflicts.length > 0) {
-            console.log(`Warning: ${result.conflicts.length} conflicts detected`);
+            this.logger.warn(`${result.conflicts.length} conflicts detected during symbol import.`);
         }
     }
     /**
@@ -420,7 +425,7 @@ class SNESDisassembler {
         // Sync current labels with symbol manager
         this.syncLabelsToSymbolManager();
         this.symbolManager.exportToFile(filePath, format || 'sym');
-        console.log(`Exported ${this.symbolManager.getAllSymbols().size} symbols to ${filePath}`);
+        this.logger.info(`Exported ${this.symbolManager.getAllSymbols().size} symbols to ${filePath}`);
     }
     /**
      * Generate comprehensive documentation in multiple formats
@@ -436,13 +441,13 @@ class SNESDisassembler {
         ];
         for (const { format, filename, options } of formats) {
             const output = this.formatOutputAs(lines, format, options);
-            console.log(`Generated ${filename} (${output.length} characters)`);
+            this.logger.info(`Generated ${filename} with ${output.length} characters.`);
             // In a real implementation: fs.writeFileSync(path.join(outputDir, filename), output);
         }
         // Generate symbol table
         this.exportSymbols(`${outputDir}/symbols.sym`);
-        console.log(`Documentation generated in ${outputDir}/`);
-        console.log(`Files: disassembly.html, README.md, disassembly.json, game.s, symbols.sym`);
+        this.logger.info(`Documentation generated in ${outputDir}/`);
+        this.logger.info('Files: disassembly.html, README.md, disassembly.json, game.s, symbols.sym');
     }
     /**
      * Get supported output formats
@@ -462,7 +467,7 @@ class SNESDisassembler {
                 name: symbol.name,
                 type: this.convertSymbolType(symbol.type),
                 scope: 'GLOBAL',
-                description: `Auto-generated symbol`
+                description: 'Auto-generated symbol'
             });
         }
         // Add labels as symbols
@@ -550,20 +555,20 @@ class SNESDisassembler {
      * Validate disassembly using SNES reference tables
      */
     validateDisassembly(lines) {
-        console.log('🔍 Validating disassembly against SNES reference tables...');
+        this.logger.info('🔍 Validating disassembly against SNES reference tables...');
         const result = this.validationEngine.validateDisassembly(lines);
         if (result.discrepancies.length > 0) {
-            console.log(`⚠️  Found ${result.discrepancies.length} validation issues:`);
+            this.logger.warn(`⚠️  Found ${result.discrepancies.length} validation issues:`);
             const errors = result.discrepancies.filter(d => d.severity === 'error');
             const warnings = result.discrepancies.filter(d => d.severity === 'warning');
             if (errors.length > 0) {
-                console.log(`   - ${errors.length} errors`);
+                this.logger.error(`${errors.length} errors found.`);
             }
             if (warnings.length > 0) {
-                console.log(`   - ${warnings.length} warnings`);
+                this.logger.warn(`${warnings.length} warnings found.`);
             }
         }
-        console.log(`✅ Validation complete: ${result.accuracy.toFixed(1)}% accuracy`);
+        this.logger.info(`✅ Validation complete with ${result.accuracy.toFixed(1)}% accuracy.`);
         return result;
     }
     /**
@@ -595,7 +600,7 @@ class SNESDisassembler {
      */
     isRegisterAddress(address) {
         return (address >= 0x2100 && address <= 0x21FF) || // PPU registers
-            (address >= 0x4200 && address <= 0x43FF) || // CPU registers  
+            (address >= 0x4200 && address <= 0x43FF) || // CPU registers
             (address >= 0x2140 && address <= 0x2143); // APU I/O ports
     }
     /**
@@ -616,7 +621,7 @@ class SNESDisassembler {
     getValidationResults() {
         // Return the last validation result if validation is enabled
         if (!this.enableValidation) {
-            console.warn('Validation is disabled. Enable it in DisassemblerOptions to get validation results.');
+            this.logger.warn('Validation is disabled. Enable it in DisassemblerOptions to get validation results.');
             return null;
         }
         // For now, we'll need to re-run validation on the current disassembly

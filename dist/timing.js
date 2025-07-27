@@ -1,8 +1,5 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.calculateCycles = calculateCycles;
-exports.isFastROM = isFastROM;
-exports.getMemoryTiming = getMemoryTiming;
 exports.createCycleInfo = createCycleInfo;
 const types_1 = require("./types");
 const cartridge_types_1 = require("./cartridge-types");

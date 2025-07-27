@@ -1,10 +1,10 @@
 /**
  * Quality Reporter Module
- * 
+ *
  * Provides quality analysis and reporting for disassembly results
  */
 
-export interface QualityMetrics {
+interface QualityMetrics {
   coverage: number;
   accuracy: number;
   completeness: number;

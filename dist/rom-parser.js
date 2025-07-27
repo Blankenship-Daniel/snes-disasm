@@ -115,7 +115,7 @@ class RomParser {
         }
         else {
             if ((mapMode & 0x01) === 0)
-                score += 20; // LoROM should have bit 0 clear  
+                score += 20; // LoROM should have bit 0 clear
             if (mapType === 0x00 || mapType === 0x02 || mapType === 0x03)
                 score += 5; // Valid LoROM map types
         }
@@ -184,7 +184,7 @@ class RomParser {
                 abort: data.readUInt16LE(offset + 0x28),
                 nmi: data.readUInt16LE(offset + 0x2A),
                 reset: data.readUInt16LE(offset + 0x2C),
-                irq: data.readUInt16LE(offset + 0x2E),
+                irq: data.readUInt16LE(offset + 0x2E)
             },
             emulationVectors: {
                 cop: data.readUInt16LE(offset + 0x34),
@@ -192,7 +192,7 @@ class RomParser {
                 abort: data.readUInt16LE(offset + 0x38),
                 nmi: data.readUInt16LE(offset + 0x3A),
                 reset: data.readUInt16LE(offset + 0x3C),
-                irq: data.readUInt16LE(offset + 0x3E),
+                irq: data.readUInt16LE(offset + 0x3E)
             }
         };
     }
@@ -252,7 +252,7 @@ class RomParser {
         if (bank >= 0xC0) {
             return ((bank - 0xC0) * 0x10000) + offset;
         }
-        // Banks 40-7F: Direct ROM mapping (64KB per bank)  
+        // Banks 40-7F: Direct ROM mapping (64KB per bank)
         if (bank >= 0x40 && bank <= 0x7F) {
             return ((bank - 0x40) * 0x10000) + offset;
         }

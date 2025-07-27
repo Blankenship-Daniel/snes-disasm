@@ -20,7 +20,7 @@ export function createDefaultFlags(): ProcessorFlags {
 /**
  * Convert processor flags to P register byte value
  */
-export function flagsToByte(flags: ProcessorFlags): number {
+function flagsToByte(flags: ProcessorFlags): number {
   let p = 0;
   if (flags.n) p |= 0x80; // Bit 7
   if (flags.v) p |= 0x40; // Bit 6
@@ -36,7 +36,7 @@ export function flagsToByte(flags: ProcessorFlags): number {
 /**
  * Convert P register byte value to processor flags
  */
-export function byteToFlags(p: number, existingFlags?: ProcessorFlags): ProcessorFlags {
+function byteToFlags(p: number, existingFlags?: ProcessorFlags): ProcessorFlags {
   return {
     n: (p & 0x80) !== 0,
     v: (p & 0x40) !== 0,
@@ -55,7 +55,7 @@ export function byteToFlags(p: number, existingFlags?: ProcessorFlags): Processo
  */
 export function applyREP(flags: ProcessorFlags, operand: number): ProcessorFlags {
   const newFlags = { ...flags };
-  
+
   if (operand & 0x80) newFlags.n = false; // Clear N flag
   if (operand & 0x40) newFlags.v = false; // Clear V flag
   if (operand & 0x20) newFlags.m = false; // Clear M flag (16-bit accumulator)
@@ -64,7 +64,7 @@ export function applyREP(flags: ProcessorFlags, operand: number): ProcessorFlags
   if (operand & 0x04) newFlags.i = false; // Clear I flag
   if (operand & 0x02) newFlags.z = false; // Clear Z flag
   if (operand & 0x01) newFlags.c = false; // Clear C flag
-  
+
   return newFlags;
 }
 
@@ -73,7 +73,7 @@ export function applyREP(flags: ProcessorFlags, operand: number): ProcessorFlags
  */
 export function applySEP(flags: ProcessorFlags, operand: number): ProcessorFlags {
   const newFlags = { ...flags };
-  
+
   if (operand & 0x80) newFlags.n = true; // Set N flag
   if (operand & 0x40) newFlags.v = true; // Set V flag
   if (operand & 0x20) newFlags.m = true; // Set M flag (8-bit accumulator)
@@ -82,16 +82,16 @@ export function applySEP(flags: ProcessorFlags, operand: number): ProcessorFlags
   if (operand & 0x04) newFlags.i = true; // Set I flag
   if (operand & 0x02) newFlags.z = true; // Set Z flag
   if (operand & 0x01) newFlags.c = true; // Set C flag
-  
+
   return newFlags;
 }
 
 /**
  * Get a human-readable description of flag changes
  */
-export function describeFlagChanges(oldFlags: ProcessorFlags, newFlags: ProcessorFlags): string[] {
+function describeFlagChanges(oldFlags: ProcessorFlags, newFlags: ProcessorFlags): string[] {
   const changes: string[] = [];
-  
+
   if (oldFlags.n !== newFlags.n) {
     changes.push(`N: ${newFlags.n ? 'set' : 'clear'}`);
   }
@@ -116,14 +116,14 @@ export function describeFlagChanges(oldFlags: ProcessorFlags, newFlags: Processo
   if (oldFlags.c !== newFlags.c) {
     changes.push(`C: ${newFlags.c ? 'set' : 'clear'}`);
   }
-  
+
   return changes;
 }
 
 /**
  * Format flags for display (similar to debugger format)
  */
-export function formatFlags(flags: ProcessorFlags): string {
+function formatFlags(flags: ProcessorFlags): string {
   return [
     flags.n ? 'N' : 'n',
     flags.v ? 'V' : 'v',

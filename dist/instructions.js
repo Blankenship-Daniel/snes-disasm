@@ -344,6 +344,6 @@ exports.INSTRUCTION_SET = new Map([
     // XBA - Exchange B and A
     [0xEB, { opcode: 0xEB, mnemonic: 'XBA', addressingMode: types_1.AddressingMode.Implied, bytes: 1, cycles: 3 }],
     // XCE - Exchange Carry and Emulation
-    [0xFB, { opcode: 0xFB, mnemonic: 'XCE', addressingMode: types_1.AddressingMode.Implied, bytes: 1, cycles: 2 }],
+    [0xFB, { opcode: 0xFB, mnemonic: 'XCE', addressingMode: types_1.AddressingMode.Implied, bytes: 1, cycles: 2 }]
 ]);
 //# sourceMappingURL=instructions.js.map

@@ -1,11 +1,11 @@
 /**
  * SNES Reference Tables - Authoritative lookup data from snes-mcp-server
- * 
+ *
  * This module provides comprehensive validation and reference data for:
  * - 65816 instruction set with opcodes, cycles, and flags
  * - SNES hardware registers with bit layouts and usage
  * - Memory mapping and addressing modes
- * 
+ *
  * Generated from snes-mcp-server for maximum accuracy
  */
 
@@ -27,7 +27,7 @@ export interface InstructionReference {
 
 export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
   // ===== LOAD/STORE INSTRUCTIONS =====
-  
+
   // LDA - Load Accumulator
   0xA9: {
     mnemonic: 'LDA',
@@ -39,7 +39,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Load Accumulator with Memory',
     examples: ['LDA #$12     ; Load A with value $12', 'LDA #$1234   ; Load A with 16-bit value $1234 (if A is 16-bit)']
   },
-  
+
   0xA5: {
     mnemonic: 'LDA',
     opcode: 0xA5,
@@ -50,7 +50,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Load Accumulator with Memory',
     examples: ['LDA $10      ; Load A from direct page address $10', 'LDA $10,X    ; Load A from direct page address $10 + X']
   },
-  
+
   0xAD: {
     mnemonic: 'LDA',
     opcode: 0xAD,
@@ -60,7 +60,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Accumulator with Memory'
   },
-  
+
   0xBD: {
     mnemonic: 'LDA',
     opcode: 0xBD,
@@ -70,7 +70,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Accumulator with Memory'
   },
-  
+
   0xB9: {
     mnemonic: 'LDA',
     opcode: 0xB9,
@@ -80,7 +80,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Accumulator with Memory'
   },
-  
+
   0xA1: {
     mnemonic: 'LDA',
     opcode: 0xA1,
@@ -90,7 +90,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Accumulator with Memory'
   },
-  
+
   0xB1: {
     mnemonic: 'LDA',
     opcode: 0xB1,
@@ -100,7 +100,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Accumulator with Memory'
   },
-  
+
   0xA3: {
     mnemonic: 'LDA',
     opcode: 0xA3,
@@ -110,7 +110,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Accumulator Stack Relative'
   },
-  
+
   0xB3: {
     mnemonic: 'LDA',
     opcode: 0xB3,
@@ -120,7 +120,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Accumulator SR Indirect Indexed'
   },
-  
+
   0xAF: {
     mnemonic: 'LDA',
     opcode: 0xAF,
@@ -130,7 +130,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Accumulator Long'
   },
-  
+
   0xBF: {
     mnemonic: 'LDA',
     opcode: 0xBF,
@@ -140,7 +140,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Accumulator Long Indexed'
   },
-  
+
   0xA7: {
     mnemonic: 'LDA',
     opcode: 0xA7,
@@ -150,7 +150,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Accumulator Direct Page Indirect Long'
   },
-  
+
   0xB7: {
     mnemonic: 'LDA',
     opcode: 0xB7,
@@ -160,7 +160,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Accumulator DP Indirect Long Indexed'
   },
-  
+
   // LDX - Load Index X
   0xA2: {
     mnemonic: 'LDX',
@@ -171,7 +171,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Index X with Memory'
   },
-  
+
   0xA6: {
     mnemonic: 'LDX',
     opcode: 0xA6,
@@ -181,7 +181,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Index X with Memory'
   },
-  
+
   0xB6: {
     mnemonic: 'LDX',
     opcode: 0xB6,
@@ -191,7 +191,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Index X with Memory'
   },
-  
+
   0xAE: {
     mnemonic: 'LDX',
     opcode: 0xAE,
@@ -201,7 +201,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Index X with Memory'
   },
-  
+
   0xBE: {
     mnemonic: 'LDX',
     opcode: 0xBE,
@@ -211,7 +211,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Index X with Memory'
   },
-  
+
   // LDY - Load Index Y
   0xA0: {
     mnemonic: 'LDY',
@@ -222,7 +222,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Index Y with Memory'
   },
-  
+
   0xA4: {
     mnemonic: 'LDY',
     opcode: 0xA4,
@@ -232,7 +232,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Index Y with Memory'
   },
-  
+
   0xB4: {
     mnemonic: 'LDY',
     opcode: 0xB4,
@@ -242,7 +242,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Index Y with Memory'
   },
-  
+
   0xAC: {
     mnemonic: 'LDY',
     opcode: 0xAC,
@@ -252,7 +252,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Index Y with Memory'
   },
-  
+
   0xBC: {
     mnemonic: 'LDY',
     opcode: 0xBC,
@@ -262,7 +262,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Load Index Y with Memory'
   },
-  
+
   // STA - Store Accumulator
   0x85: {
     mnemonic: 'STA',
@@ -272,7 +272,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 3,
     description: 'Store Accumulator in Memory'
   },
-  
+
   0x8D: {
     mnemonic: 'STA',
     opcode: 0x8D,
@@ -282,7 +282,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Store Accumulator in Memory',
     examples: ['STA $2000    ; Store A at address $2000', 'STA $2000,X  ; Store A at address $2000 + X']
   },
-  
+
   0x9D: {
     mnemonic: 'STA',
     opcode: 0x9D,
@@ -291,7 +291,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 5,
     description: 'Store Accumulator in Memory'
   },
-  
+
   0x99: {
     mnemonic: 'STA',
     opcode: 0x99,
@@ -300,7 +300,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 5,
     description: 'Store Accumulator in Memory'
   },
-  
+
   0x81: {
     mnemonic: 'STA',
     opcode: 0x81,
@@ -309,7 +309,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 6,
     description: 'Store Accumulator in Memory'
   },
-  
+
   0x91: {
     mnemonic: 'STA',
     opcode: 0x91,
@@ -318,7 +318,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 6,
     description: 'Store Accumulator in Memory'
   },
-  
+
   0x83: {
     mnemonic: 'STA',
     opcode: 0x83,
@@ -327,7 +327,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 4,
     description: 'Store Accumulator Stack Relative'
   },
-  
+
   0x93: {
     mnemonic: 'STA',
     opcode: 0x93,
@@ -336,7 +336,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 7,
     description: 'Store Accumulator SR Indirect Indexed'
   },
-  
+
   0x8F: {
     mnemonic: 'STA',
     opcode: 0x8F,
@@ -345,7 +345,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 5,
     description: 'Store Accumulator Long'
   },
-  
+
   0x9F: {
     mnemonic: 'STA',
     opcode: 0x9F,
@@ -354,7 +354,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 5,
     description: 'Store Accumulator Long Indexed'
   },
-  
+
   0x87: {
     mnemonic: 'STA',
     opcode: 0x87,
@@ -363,7 +363,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 6,
     description: 'Store Accumulator Direct Page Indirect Long'
   },
-  
+
   0x97: {
     mnemonic: 'STA',
     opcode: 0x97,
@@ -372,7 +372,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 6,
     description: 'Store Accumulator DP Indirect Long Indexed'
   },
-  
+
   // STX - Store Index X
   0x86: {
     mnemonic: 'STX',
@@ -382,7 +382,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 3,
     description: 'Store Index X in Memory'
   },
-  
+
   0x96: {
     mnemonic: 'STX',
     opcode: 0x96,
@@ -391,7 +391,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 4,
     description: 'Store Index X in Memory'
   },
-  
+
   0x8E: {
     mnemonic: 'STX',
     opcode: 0x8E,
@@ -400,7 +400,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 4,
     description: 'Store Index X in Memory'
   },
-  
+
   // STY - Store Index Y
   0x84: {
     mnemonic: 'STY',
@@ -410,7 +410,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 3,
     description: 'Store Index Y in Memory'
   },
-  
+
   0x94: {
     mnemonic: 'STY',
     opcode: 0x94,
@@ -419,7 +419,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 4,
     description: 'Store Index Y in Memory'
   },
-  
+
   0x8C: {
     mnemonic: 'STY',
     opcode: 0x8C,
@@ -428,7 +428,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 4,
     description: 'Store Index Y in Memory'
   },
-  
+
   // STZ - Store Zero
   0x64: {
     mnemonic: 'STZ',
@@ -438,7 +438,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 3,
     description: 'Store Zero in Memory'
   },
-  
+
   0x74: {
     mnemonic: 'STZ',
     opcode: 0x74,
@@ -447,7 +447,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 4,
     description: 'Store Zero in Memory'
   },
-  
+
   0x9C: {
     mnemonic: 'STZ',
     opcode: 0x9C,
@@ -456,7 +456,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 4,
     description: 'Store Zero in Memory'
   },
-  
+
   0x9E: {
     mnemonic: 'STZ',
     opcode: 0x9E,
@@ -465,9 +465,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 5,
     description: 'Store Zero in Memory'
   },
-  
+
   // ===== ARITHMETIC INSTRUCTIONS =====
-  
+
   // ADC - Add with Carry
   0x69: {
     mnemonic: 'ADC',
@@ -480,7 +480,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     examples: ['CLC          ; Clear carry before addition', 'ADC #$10     ; Add $10 to accumulator with carry'],
     notes: ['Always add with carry flag', 'Set carry flag before first addition with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0x65: {
     mnemonic: 'ADC',
     opcode: 0x65,
@@ -491,7 +491,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Add with Carry',
     notes: ['Always add with carry flag', 'Set carry flag before first addition with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0x75: {
     mnemonic: 'ADC',
     opcode: 0x75,
@@ -502,7 +502,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Add with Carry',
     notes: ['Always add with carry flag', 'Set carry flag before first addition with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0x6D: {
     mnemonic: 'ADC',
     opcode: 0x6D,
@@ -513,7 +513,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Add with Carry',
     notes: ['Always add with carry flag', 'Set carry flag before first addition with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0x7D: {
     mnemonic: 'ADC',
     opcode: 0x7D,
@@ -524,7 +524,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Add with Carry',
     notes: ['Always add with carry flag', 'Set carry flag before first addition with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0x79: {
     mnemonic: 'ADC',
     opcode: 0x79,
@@ -535,7 +535,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Add with Carry',
     notes: ['Always add with carry flag', 'Set carry flag before first addition with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0x6F: {
     mnemonic: 'ADC',
     opcode: 0x6F,
@@ -546,7 +546,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Add with Carry Long',
     notes: ['Always add with carry flag', 'Set carry flag before first addition with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0x61: {
     mnemonic: 'ADC',
     opcode: 0x61,
@@ -557,7 +557,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Add with Carry',
     notes: ['Always add with carry flag', 'Set carry flag before first addition with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0x71: {
     mnemonic: 'ADC',
     opcode: 0x71,
@@ -568,7 +568,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Add with Carry',
     notes: ['Always add with carry flag', 'Set carry flag before first addition with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0x63: {
     mnemonic: 'ADC',
     opcode: 0x63,
@@ -579,7 +579,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Add with Carry Stack Relative',
     notes: ['Always add with carry flag', 'Set carry flag before first addition with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0x73: {
     mnemonic: 'ADC',
     opcode: 0x73,
@@ -590,7 +590,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Add with Carry SR Indirect Indexed',
     notes: ['Always add with carry flag', 'Set carry flag before first addition with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   // SBC - Subtract with Carry
   0xE9: {
     mnemonic: 'SBC',
@@ -602,7 +602,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Subtract with Carry',
     notes: ['Always subtract with carry flag', 'Set carry flag before first subtraction with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0xE5: {
     mnemonic: 'SBC',
     opcode: 0xE5,
@@ -613,7 +613,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Subtract with Carry',
     notes: ['Always subtract with carry flag', 'Set carry flag before first subtraction with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0xF5: {
     mnemonic: 'SBC',
     opcode: 0xF5,
@@ -624,7 +624,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Subtract with Carry',
     notes: ['Always subtract with carry flag', 'Set carry flag before first subtraction with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0xED: {
     mnemonic: 'SBC',
     opcode: 0xED,
@@ -635,7 +635,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Subtract with Carry',
     notes: ['Always subtract with carry flag', 'Set carry flag before first subtraction with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0xFD: {
     mnemonic: 'SBC',
     opcode: 0xFD,
@@ -646,7 +646,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Subtract with Carry',
     notes: ['Always subtract with carry flag', 'Set carry flag before first subtraction with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0xF9: {
     mnemonic: 'SBC',
     opcode: 0xF9,
@@ -657,7 +657,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Subtract with Carry',
     notes: ['Always subtract with carry flag', 'Set carry flag before first subtraction with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0xEF: {
     mnemonic: 'SBC',
     opcode: 0xEF,
@@ -668,7 +668,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Subtract with Carry Long',
     notes: ['Always subtract with carry flag', 'Set carry flag before first subtraction with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0xE1: {
     mnemonic: 'SBC',
     opcode: 0xE1,
@@ -679,7 +679,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Subtract with Carry',
     notes: ['Always subtract with carry flag', 'Set carry flag before first subtraction with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0xF1: {
     mnemonic: 'SBC',
     opcode: 0xF1,
@@ -690,7 +690,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Subtract with Carry',
     notes: ['Always subtract with carry flag', 'Set carry flag before first subtraction with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0xE3: {
     mnemonic: 'SBC',
     opcode: 0xE3,
@@ -701,7 +701,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Subtract with Carry Stack Relative',
     notes: ['Always subtract with carry flag', 'Set carry flag before first subtraction with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   0xF3: {
     mnemonic: 'SBC',
     opcode: 0xF3,
@@ -712,7 +712,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Subtract with Carry SR Indirect Indexed',
     notes: ['Always subtract with carry flag', 'Set carry flag before first subtraction with SEC', 'Result affected by decimal mode (D flag)']
   },
-  
+
   // INC - Increment
   0x1A: {
     mnemonic: 'INC',
@@ -723,7 +723,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Increment Accumulator'
   },
-  
+
   0xE6: {
     mnemonic: 'INC',
     opcode: 0xE6,
@@ -733,7 +733,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Increment Memory'
   },
-  
+
   0xF6: {
     mnemonic: 'INC',
     opcode: 0xF6,
@@ -743,7 +743,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Increment Memory'
   },
-  
+
   0xEE: {
     mnemonic: 'INC',
     opcode: 0xEE,
@@ -753,7 +753,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Increment Memory'
   },
-  
+
   0xFE: {
     mnemonic: 'INC',
     opcode: 0xFE,
@@ -763,7 +763,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Increment Memory'
   },
-  
+
   // DEC - Decrement
   0x3A: {
     mnemonic: 'DEC',
@@ -774,7 +774,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Decrement Accumulator'
   },
-  
+
   0xC6: {
     mnemonic: 'DEC',
     opcode: 0xC6,
@@ -784,7 +784,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Decrement Memory'
   },
-  
+
   0xD6: {
     mnemonic: 'DEC',
     opcode: 0xD6,
@@ -794,7 +794,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Decrement Memory'
   },
-  
+
   0xCE: {
     mnemonic: 'DEC',
     opcode: 0xCE,
@@ -804,7 +804,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Decrement Memory'
   },
-  
+
   0xDE: {
     mnemonic: 'DEC',
     opcode: 0xDE,
@@ -814,7 +814,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Decrement Memory'
   },
-  
+
   // INX/INY/DEX/DEY - Index Register Operations
   0xE8: {
     mnemonic: 'INX',
@@ -825,7 +825,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Increment Index X'
   },
-  
+
   0xC8: {
     mnemonic: 'INY',
     opcode: 0xC8,
@@ -835,7 +835,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Increment Index Y'
   },
-  
+
   0xCA: {
     mnemonic: 'DEX',
     opcode: 0xCA,
@@ -845,7 +845,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Decrement Index X'
   },
-  
+
   0x88: {
     mnemonic: 'DEY',
     opcode: 0x88,
@@ -855,9 +855,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Decrement Index Y'
   },
-  
+
   // ===== BRANCH INSTRUCTIONS =====
-  
+
   0x90: {
     mnemonic: 'BCC',
     opcode: 0x90,
@@ -866,7 +866,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 2, // +t+p for branch taken + page boundary
     description: 'Branch if Carry Clear'
   },
-  
+
   0xB0: {
     mnemonic: 'BCS',
     opcode: 0xB0,
@@ -875,7 +875,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 2,
     description: 'Branch if Carry Set'
   },
-  
+
   0xF0: {
     mnemonic: 'BEQ',
     opcode: 0xF0,
@@ -884,7 +884,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 2,
     description: 'Branch if Equal (Zero Set)'
   },
-  
+
   0xD0: {
     mnemonic: 'BNE',
     opcode: 0xD0,
@@ -893,7 +893,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 2,
     description: 'Branch if Not Equal (Zero Clear)'
   },
-  
+
   0x30: {
     mnemonic: 'BMI',
     opcode: 0x30,
@@ -902,7 +902,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 2,
     description: 'Branch if Minus (Negative Set)'
   },
-  
+
   0x10: {
     mnemonic: 'BPL',
     opcode: 0x10,
@@ -911,7 +911,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 2,
     description: 'Branch if Plus (Negative Clear)'
   },
-  
+
   0x50: {
     mnemonic: 'BVC',
     opcode: 0x50,
@@ -920,7 +920,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 2,
     description: 'Branch if Overflow Clear'
   },
-  
+
   0x70: {
     mnemonic: 'BVS',
     opcode: 0x70,
@@ -929,7 +929,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 2,
     description: 'Branch if Overflow Set'
   },
-  
+
   0x80: {
     mnemonic: 'BRA',
     opcode: 0x80,
@@ -939,7 +939,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Branch Always',
     notes: ['Always branches (unconditional)', '8-bit signed displacement (-128 to +127)', '3 cycles if branch taken']
   },
-  
+
   0x82: {
     mnemonic: 'BRL',
     opcode: 0x82,
@@ -949,9 +949,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Branch Always Long',
     notes: ['Always branches (unconditional)', '16-bit signed displacement (-32768 to +32767)', 'Always takes 4 cycles']
   },
-  
+
   // ===== JUMP AND SUBROUTINE INSTRUCTIONS =====
-  
+
   0x4C: {
     mnemonic: 'JMP',
     opcode: 0x4C,
@@ -961,7 +961,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Jump',
     examples: ['JMP $8000    ; Jump to address $8000', 'JMP ($1234)  ; Jump to address stored at $1234']
   },
-  
+
   0x6C: {
     mnemonic: 'JMP',
     opcode: 0x6C,
@@ -970,7 +970,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 5,
     description: 'Jump Indirect'
   },
-  
+
   0x7C: {
     mnemonic: 'JMP',
     opcode: 0x7C,
@@ -979,7 +979,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 6,
     description: 'Jump Indexed Indirect'
   },
-  
+
   0x5C: {
     mnemonic: 'JML',
     opcode: 0x5C,
@@ -988,7 +988,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 4,
     description: 'Jump Long'
   },
-  
+
   0xDC: {
     mnemonic: 'JML',
     opcode: 0xDC,
@@ -997,7 +997,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 6,
     description: 'Jump Long Indirect'
   },
-  
+
   0x20: {
     mnemonic: 'JSR',
     opcode: 0x20,
@@ -1007,7 +1007,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Jump to Subroutine',
     examples: ['JSR $9000    ; Jump to subroutine at $9000', 'RTS          ; Return from subroutine']
   },
-  
+
   0xFC: {
     mnemonic: 'JSR',
     opcode: 0xFC,
@@ -1016,7 +1016,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 8,
     description: 'Jump to Subroutine Indexed Indirect'
   },
-  
+
   0x22: {
     mnemonic: 'JSL',
     opcode: 0x22,
@@ -1025,7 +1025,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 8,
     description: 'Jump to Subroutine Long'
   },
-  
+
   0x60: {
     mnemonic: 'RTS',
     opcode: 0x60,
@@ -1034,7 +1034,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 6,
     description: 'Return from Subroutine'
   },
-  
+
   0x6B: {
     mnemonic: 'RTL',
     opcode: 0x6B,
@@ -1043,7 +1043,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 6,
     description: 'Return from Subroutine Long'
   },
-  
+
   0x40: {
     mnemonic: 'RTI',
     opcode: 0x40,
@@ -1053,9 +1053,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['All'],
     description: 'Return from Interrupt'
   },
-  
+
   // ===== STACK OPERATIONS =====
-  
+
   0x48: {
     mnemonic: 'PHA',
     opcode: 0x48,
@@ -1064,7 +1064,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 3,
     description: 'Push Accumulator'
   },
-  
+
   0x08: {
     mnemonic: 'PHP',
     opcode: 0x08,
@@ -1073,7 +1073,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 3,
     description: 'Push Processor Status'
   },
-  
+
   0xDA: {
     mnemonic: 'PHX',
     opcode: 0xDA,
@@ -1082,7 +1082,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 3,
     description: 'Push Index X'
   },
-  
+
   0x5A: {
     mnemonic: 'PHY',
     opcode: 0x5A,
@@ -1091,7 +1091,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 3,
     description: 'Push Index Y'
   },
-  
+
   0x8B: {
     mnemonic: 'PHB',
     opcode: 0x8B,
@@ -1100,7 +1100,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 3,
     description: 'Push Data Bank Register'
   },
-  
+
   0x0B: {
     mnemonic: 'PHD',
     opcode: 0x0B,
@@ -1109,7 +1109,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 4,
     description: 'Push Direct Page Register'
   },
-  
+
   0x4B: {
     mnemonic: 'PHK',
     opcode: 0x4B,
@@ -1118,7 +1118,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 3,
     description: 'Push Program Bank Register'
   },
-  
+
   0x68: {
     mnemonic: 'PLA',
     opcode: 0x68,
@@ -1128,7 +1128,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Pull Accumulator'
   },
-  
+
   0x28: {
     mnemonic: 'PLP',
     opcode: 0x28,
@@ -1138,7 +1138,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['All'],
     description: 'Pull Processor Status'
   },
-  
+
   0xFA: {
     mnemonic: 'PLX',
     opcode: 0xFA,
@@ -1148,7 +1148,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Pull Index X'
   },
-  
+
   0x7A: {
     mnemonic: 'PLY',
     opcode: 0x7A,
@@ -1158,7 +1158,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Pull Index Y'
   },
-  
+
   0xAB: {
     mnemonic: 'PLB',
     opcode: 0xAB,
@@ -1168,7 +1168,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Pull Data Bank Register'
   },
-  
+
   0x2B: {
     mnemonic: 'PLD',
     opcode: 0x2B,
@@ -1178,9 +1178,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Pull Direct Page Register'
   },
-  
+
   // ===== TRANSFER INSTRUCTIONS =====
-  
+
   0xAA: {
     mnemonic: 'TAX',
     opcode: 0xAA,
@@ -1190,7 +1190,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Transfer Accumulator to Index X'
   },
-  
+
   0xA8: {
     mnemonic: 'TAY',
     opcode: 0xA8,
@@ -1200,7 +1200,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Transfer Accumulator to Index Y'
   },
-  
+
   0x8A: {
     mnemonic: 'TXA',
     opcode: 0x8A,
@@ -1210,7 +1210,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Transfer Index X to Accumulator'
   },
-  
+
   0x98: {
     mnemonic: 'TYA',
     opcode: 0x98,
@@ -1220,7 +1220,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Transfer Index Y to Accumulator'
   },
-  
+
   0x9A: {
     mnemonic: 'TXS',
     opcode: 0x9A,
@@ -1229,7 +1229,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 2,
     description: 'Transfer Index X to Stack Pointer'
   },
-  
+
   0xBA: {
     mnemonic: 'TSX',
     opcode: 0xBA,
@@ -1239,7 +1239,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Transfer Stack Pointer to Index X'
   },
-  
+
   0x9B: {
     mnemonic: 'TXY',
     opcode: 0x9B,
@@ -1249,7 +1249,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Transfer Index X to Index Y'
   },
-  
+
   0xBB: {
     mnemonic: 'TYX',
     opcode: 0xBB,
@@ -1259,7 +1259,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Transfer Index Y to Index X'
   },
-  
+
   0x5B: {
     mnemonic: 'TCD',
     opcode: 0x5B,
@@ -1269,7 +1269,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Transfer 16-bit Accumulator to Direct Page Register'
   },
-  
+
   0x7B: {
     mnemonic: 'TDC',
     opcode: 0x7B,
@@ -1279,7 +1279,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Transfer Direct Page Register to 16-bit Accumulator'
   },
-  
+
   0x1B: {
     mnemonic: 'TCS',
     opcode: 0x1B,
@@ -1288,7 +1288,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 2,
     description: 'Transfer 16-bit Accumulator to Stack Pointer'
   },
-  
+
   0x3B: {
     mnemonic: 'TSC',
     opcode: 0x3B,
@@ -1298,9 +1298,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Transfer Stack Pointer to 16-bit Accumulator'
   },
-  
+
   // ===== FLAG CONTROL INSTRUCTIONS =====
-  
+
   0x18: {
     mnemonic: 'CLC',
     opcode: 0x18,
@@ -1310,7 +1310,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['C'],
     description: 'Clear Carry Flag'
   },
-  
+
   0x38: {
     mnemonic: 'SEC',
     opcode: 0x38,
@@ -1320,7 +1320,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['C'],
     description: 'Set Carry Flag'
   },
-  
+
   0x58: {
     mnemonic: 'CLI',
     opcode: 0x58,
@@ -1330,7 +1330,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['I'],
     description: 'Clear Interrupt Disable Flag'
   },
-  
+
   0x78: {
     mnemonic: 'SEI',
     opcode: 0x78,
@@ -1340,7 +1340,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['I'],
     description: 'Set Interrupt Disable Flag'
   },
-  
+
   0xD8: {
     mnemonic: 'CLD',
     opcode: 0xD8,
@@ -1350,7 +1350,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['D'],
     description: 'Clear Decimal Mode Flag'
   },
-  
+
   0xF8: {
     mnemonic: 'SED',
     opcode: 0xF8,
@@ -1360,7 +1360,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['D'],
     description: 'Set Decimal Mode Flag'
   },
-  
+
   0xB8: {
     mnemonic: 'CLV',
     opcode: 0xB8,
@@ -1370,9 +1370,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['V'],
     description: 'Clear Overflow Flag'
   },
-  
+
   // ===== PROCESSOR CONTROL INSTRUCTIONS =====
-  
+
   0xC2: {
     mnemonic: 'REP',
     opcode: 0xC2,
@@ -1383,7 +1383,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Reset Processor Status Bits',
     notes: ['Reset processor status bits', 'REP #$30 sets A, X, Y to 16-bit mode', 'REP #$20 sets A to 16-bit mode']
   },
-  
+
   0xE2: {
     mnemonic: 'SEP',
     opcode: 0xE2,
@@ -1394,7 +1394,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     description: 'Set Processor Status Bits',
     notes: ['Set processor status bits', 'SEP #$30 sets A, X, Y to 8-bit mode', 'SEP #$20 sets A to 8-bit mode']
   },
-  
+
   0xFB: {
     mnemonic: 'XCE',
     opcode: 0xFB,
@@ -1404,9 +1404,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['E', 'C'],
     description: 'Exchange Carry and Emulation Flags'
   },
-  
+
   // ===== LOGICAL OPERATIONS =====
-  
+
   // ORA - OR Accumulator with Memory
   0x09: {
     mnemonic: 'ORA',
@@ -1417,7 +1417,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'OR Accumulator with Memory'
   },
-  
+
   0x05: {
     mnemonic: 'ORA',
     opcode: 0x05,
@@ -1427,7 +1427,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'OR Accumulator with Memory'
   },
-  
+
   0x15: {
     mnemonic: 'ORA',
     opcode: 0x15,
@@ -1437,7 +1437,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'OR Accumulator with Memory'
   },
-  
+
   0x0D: {
     mnemonic: 'ORA',
     opcode: 0x0D,
@@ -1447,7 +1447,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'OR Accumulator with Memory'
   },
-  
+
   0x1D: {
     mnemonic: 'ORA',
     opcode: 0x1D,
@@ -1457,7 +1457,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'OR Accumulator with Memory'
   },
-  
+
   0x19: {
     mnemonic: 'ORA',
     opcode: 0x19,
@@ -1467,7 +1467,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'OR Accumulator with Memory'
   },
-  
+
   0x01: {
     mnemonic: 'ORA',
     opcode: 0x01,
@@ -1477,7 +1477,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'OR Accumulator with Memory'
   },
-  
+
   0x11: {
     mnemonic: 'ORA',
     opcode: 0x11,
@@ -1487,7 +1487,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'OR Accumulator with Memory'
   },
-  
+
   0x03: {
     mnemonic: 'ORA',
     opcode: 0x03,
@@ -1497,7 +1497,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'OR Accumulator with Stack Relative'
   },
-  
+
   0x13: {
     mnemonic: 'ORA',
     opcode: 0x13,
@@ -1507,7 +1507,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'OR Accumulator with SR Indirect Indexed'
   },
-  
+
   // AND - AND Accumulator with Memory
   0x29: {
     mnemonic: 'AND',
@@ -1518,7 +1518,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'AND Accumulator with Memory'
   },
-  
+
   0x25: {
     mnemonic: 'AND',
     opcode: 0x25,
@@ -1528,7 +1528,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'AND Accumulator with Memory'
   },
-  
+
   0x35: {
     mnemonic: 'AND',
     opcode: 0x35,
@@ -1538,7 +1538,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'AND Accumulator with Memory'
   },
-  
+
   0x2D: {
     mnemonic: 'AND',
     opcode: 0x2D,
@@ -1548,7 +1548,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'AND Accumulator with Memory'
   },
-  
+
   0x3D: {
     mnemonic: 'AND',
     opcode: 0x3D,
@@ -1558,7 +1558,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'AND Accumulator with Memory'
   },
-  
+
   0x39: {
     mnemonic: 'AND',
     opcode: 0x39,
@@ -1568,7 +1568,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'AND Accumulator with Memory'
   },
-  
+
   0x21: {
     mnemonic: 'AND',
     opcode: 0x21,
@@ -1578,7 +1578,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'AND Accumulator with Memory'
   },
-  
+
   0x31: {
     mnemonic: 'AND',
     opcode: 0x31,
@@ -1588,7 +1588,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'AND Accumulator with Memory'
   },
-  
+
   0x23: {
     mnemonic: 'AND',
     opcode: 0x23,
@@ -1598,7 +1598,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'AND Accumulator with Stack Relative'
   },
-  
+
   0x33: {
     mnemonic: 'AND',
     opcode: 0x33,
@@ -1608,7 +1608,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'AND Accumulator with SR Indirect Indexed'
   },
-  
+
   // EOR - Exclusive OR Accumulator with Memory
   0x49: {
     mnemonic: 'EOR',
@@ -1619,7 +1619,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Exclusive OR Accumulator with Memory'
   },
-  
+
   0x45: {
     mnemonic: 'EOR',
     opcode: 0x45,
@@ -1629,7 +1629,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Exclusive OR Accumulator with Memory'
   },
-  
+
   0x55: {
     mnemonic: 'EOR',
     opcode: 0x55,
@@ -1639,7 +1639,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Exclusive OR Accumulator with Memory'
   },
-  
+
   0x4D: {
     mnemonic: 'EOR',
     opcode: 0x4D,
@@ -1649,7 +1649,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Exclusive OR Accumulator with Memory'
   },
-  
+
   0x5D: {
     mnemonic: 'EOR',
     opcode: 0x5D,
@@ -1659,7 +1659,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Exclusive OR Accumulator with Memory'
   },
-  
+
   0x59: {
     mnemonic: 'EOR',
     opcode: 0x59,
@@ -1669,7 +1669,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Exclusive OR Accumulator with Memory'
   },
-  
+
   0x41: {
     mnemonic: 'EOR',
     opcode: 0x41,
@@ -1679,7 +1679,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Exclusive OR Accumulator with Memory'
   },
-  
+
   0x51: {
     mnemonic: 'EOR',
     opcode: 0x51,
@@ -1689,7 +1689,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'Exclusive OR Accumulator with Memory'
   },
-  
+
   0x43: {
     mnemonic: 'EOR',
     opcode: 0x43,
@@ -1699,7 +1699,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'EOR Accumulator with Stack Relative'
   },
-  
+
   0x53: {
     mnemonic: 'EOR',
     opcode: 0x53,
@@ -1709,9 +1709,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z'],
     description: 'EOR Accumulator with SR Indirect Indexed'
   },
-  
+
   // ===== SHIFT AND ROTATE INSTRUCTIONS =====
-  
+
   0x0A: {
     mnemonic: 'ASL',
     opcode: 0x0A,
@@ -1721,7 +1721,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Arithmetic Shift Left'
   },
-  
+
   0x06: {
     mnemonic: 'ASL',
     opcode: 0x06,
@@ -1731,7 +1731,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Arithmetic Shift Left'
   },
-  
+
   0x16: {
     mnemonic: 'ASL',
     opcode: 0x16,
@@ -1741,7 +1741,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Arithmetic Shift Left'
   },
-  
+
   0x0E: {
     mnemonic: 'ASL',
     opcode: 0x0E,
@@ -1751,7 +1751,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Arithmetic Shift Left'
   },
-  
+
   0x1E: {
     mnemonic: 'ASL',
     opcode: 0x1E,
@@ -1761,7 +1761,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Arithmetic Shift Left'
   },
-  
+
   0x4A: {
     mnemonic: 'LSR',
     opcode: 0x4A,
@@ -1771,7 +1771,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Logical Shift Right'
   },
-  
+
   0x46: {
     mnemonic: 'LSR',
     opcode: 0x46,
@@ -1781,7 +1781,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Logical Shift Right'
   },
-  
+
   0x56: {
     mnemonic: 'LSR',
     opcode: 0x56,
@@ -1791,7 +1791,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Logical Shift Right'
   },
-  
+
   0x4E: {
     mnemonic: 'LSR',
     opcode: 0x4E,
@@ -1801,7 +1801,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Logical Shift Right'
   },
-  
+
   0x5E: {
     mnemonic: 'LSR',
     opcode: 0x5E,
@@ -1811,7 +1811,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Logical Shift Right'
   },
-  
+
   0x2A: {
     mnemonic: 'ROL',
     opcode: 0x2A,
@@ -1821,7 +1821,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Rotate Left'
   },
-  
+
   0x26: {
     mnemonic: 'ROL',
     opcode: 0x26,
@@ -1831,7 +1831,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Rotate Left'
   },
-  
+
   0x36: {
     mnemonic: 'ROL',
     opcode: 0x36,
@@ -1841,7 +1841,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Rotate Left'
   },
-  
+
   0x2E: {
     mnemonic: 'ROL',
     opcode: 0x2E,
@@ -1851,7 +1851,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Rotate Left'
   },
-  
+
   0x3E: {
     mnemonic: 'ROL',
     opcode: 0x3E,
@@ -1861,7 +1861,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Rotate Left'
   },
-  
+
   0x6A: {
     mnemonic: 'ROR',
     opcode: 0x6A,
@@ -1871,7 +1871,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Rotate Right'
   },
-  
+
   0x66: {
     mnemonic: 'ROR',
     opcode: 0x66,
@@ -1881,7 +1881,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Rotate Right'
   },
-  
+
   0x76: {
     mnemonic: 'ROR',
     opcode: 0x76,
@@ -1891,7 +1891,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Rotate Right'
   },
-  
+
   0x6E: {
     mnemonic: 'ROR',
     opcode: 0x6E,
@@ -1901,7 +1901,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Rotate Right'
   },
-  
+
   0x7E: {
     mnemonic: 'ROR',
     opcode: 0x7E,
@@ -1911,9 +1911,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Rotate Right'
   },
-  
+
   // ===== COMPARISON INSTRUCTIONS =====
-  
+
   0xC9: {
     mnemonic: 'CMP',
     opcode: 0xC9,
@@ -1923,7 +1923,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator with Memory'
   },
-  
+
   0xC5: {
     mnemonic: 'CMP',
     opcode: 0xC5,
@@ -1933,7 +1933,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator with Memory'
   },
-  
+
   0xD5: {
     mnemonic: 'CMP',
     opcode: 0xD5,
@@ -1943,7 +1943,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator with Memory'
   },
-  
+
   0xCD: {
     mnemonic: 'CMP',
     opcode: 0xCD,
@@ -1953,7 +1953,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator with Memory'
   },
-  
+
   0xDD: {
     mnemonic: 'CMP',
     opcode: 0xDD,
@@ -1963,7 +1963,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator with Memory'
   },
-  
+
   0xD9: {
     mnemonic: 'CMP',
     opcode: 0xD9,
@@ -1973,7 +1973,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator with Memory'
   },
-  
+
   0xCF: {
     mnemonic: 'CMP',
     opcode: 0xCF,
@@ -1983,7 +1983,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator Long'
   },
-  
+
   0xDF: {
     mnemonic: 'CMP',
     opcode: 0xDF,
@@ -1993,7 +1993,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator Long Indexed'
   },
-  
+
   0xC1: {
     mnemonic: 'CMP',
     opcode: 0xC1,
@@ -2003,7 +2003,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator with Memory'
   },
-  
+
   0xD1: {
     mnemonic: 'CMP',
     opcode: 0xD1,
@@ -2013,7 +2013,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator with Memory'
   },
-  
+
   0xC7: {
     mnemonic: 'CMP',
     opcode: 0xC7,
@@ -2023,7 +2023,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator DP Indirect Long'
   },
-  
+
   0xD7: {
     mnemonic: 'CMP',
     opcode: 0xD7,
@@ -2033,7 +2033,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator DP Indirect Long Indexed'
   },
-  
+
   0xC3: {
     mnemonic: 'CMP',
     opcode: 0xC3,
@@ -2043,7 +2043,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator Stack Relative'
   },
-  
+
   0xD3: {
     mnemonic: 'CMP',
     opcode: 0xD3,
@@ -2053,7 +2053,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Accumulator SR Indirect Indexed'
   },
-  
+
   0xE0: {
     mnemonic: 'CPX',
     opcode: 0xE0,
@@ -2063,7 +2063,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Index X with Memory'
   },
-  
+
   0xE4: {
     mnemonic: 'CPX',
     opcode: 0xE4,
@@ -2073,7 +2073,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Index X with Memory'
   },
-  
+
   0xEC: {
     mnemonic: 'CPX',
     opcode: 0xEC,
@@ -2083,7 +2083,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Index X with Memory'
   },
-  
+
   0xC0: {
     mnemonic: 'CPY',
     opcode: 0xC0,
@@ -2093,7 +2093,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Index Y with Memory'
   },
-  
+
   0xC4: {
     mnemonic: 'CPY',
     opcode: 0xC4,
@@ -2103,7 +2103,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Index Y with Memory'
   },
-  
+
   0xCC: {
     mnemonic: 'CPY',
     opcode: 0xCC,
@@ -2113,9 +2113,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'Z', 'C'],
     description: 'Compare Index Y with Memory'
   },
-  
+
   // ===== BIT TEST INSTRUCTIONS =====
-  
+
   0x89: {
     mnemonic: 'BIT',
     opcode: 0x89,
@@ -2125,7 +2125,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['Z'],
     description: 'Test Bits (Immediate mode only affects Z)'
   },
-  
+
   0x24: {
     mnemonic: 'BIT',
     opcode: 0x24,
@@ -2135,7 +2135,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'V', 'Z'],
     description: 'Test Bits'
   },
-  
+
   0x34: {
     mnemonic: 'BIT',
     opcode: 0x34,
@@ -2145,7 +2145,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'V', 'Z'],
     description: 'Test Bits'
   },
-  
+
   0x2C: {
     mnemonic: 'BIT',
     opcode: 0x2C,
@@ -2155,7 +2155,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'V', 'Z'],
     description: 'Test Bits'
   },
-  
+
   0x3C: {
     mnemonic: 'BIT',
     opcode: 0x3C,
@@ -2165,7 +2165,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['N', 'V', 'Z'],
     description: 'Test Bits'
   },
-  
+
   0x14: {
     mnemonic: 'TRB',
     opcode: 0x14,
@@ -2175,7 +2175,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['Z'],
     description: 'Test and Reset Bits'
   },
-  
+
   0x1C: {
     mnemonic: 'TRB',
     opcode: 0x1C,
@@ -2185,7 +2185,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['Z'],
     description: 'Test and Reset Bits'
   },
-  
+
   0x04: {
     mnemonic: 'TSB',
     opcode: 0x04,
@@ -2195,7 +2195,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['Z'],
     description: 'Test and Set Bits'
   },
-  
+
   0x0C: {
     mnemonic: 'TSB',
     opcode: 0x0C,
@@ -2205,9 +2205,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['Z'],
     description: 'Test and Set Bits'
   },
-  
+
   // ===== SYSTEM CONTROL INSTRUCTIONS =====
-  
+
   0xEA: {
     mnemonic: 'NOP',
     opcode: 0xEA,
@@ -2216,7 +2216,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 2,
     description: 'No Operation'
   },
-  
+
   0xDB: {
     mnemonic: 'STP',
     opcode: 0xDB,
@@ -2225,7 +2225,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 3,
     description: 'Stop the Processor'
   },
-  
+
   0xCB: {
     mnemonic: 'WAI',
     opcode: 0xCB,
@@ -2234,7 +2234,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 3,
     description: 'Wait for Interrupt'
   },
-  
+
   0x00: {
     mnemonic: 'BRK',
     opcode: 0x00,
@@ -2244,7 +2244,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['B', 'I'],
     description: 'Software Break'
   },
-  
+
   0x02: {
     mnemonic: 'COP',
     opcode: 0x02,
@@ -2254,7 +2254,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     flagsAffected: ['I'],
     description: 'Coprocessor Enable'
   },
-  
+
   0x42: {
     mnemonic: 'WDM',
     opcode: 0x42,
@@ -2263,9 +2263,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 2,
     description: 'Reserved for Future Expansion'
   },
-  
+
   // ===== BLOCK MOVE INSTRUCTIONS =====
-  
+
   0x44: {
     mnemonic: 'MVP',
     opcode: 0x44,
@@ -2274,7 +2274,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 7,
     description: 'Block Move Previous'
   },
-  
+
   0x54: {
     mnemonic: 'MVN',
     opcode: 0x54,
@@ -2283,9 +2283,9 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 7,
     description: 'Block Move Next'
   },
-  
+
   // ===== STACK ADDRESSING INSTRUCTIONS =====
-  
+
   0xF4: {
     mnemonic: 'PEA',
     opcode: 0xF4,
@@ -2294,7 +2294,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 5,
     description: 'Push Effective Absolute Address'
   },
-  
+
   0xD4: {
     mnemonic: 'PEI',
     opcode: 0xD4,
@@ -2303,7 +2303,7 @@ export const INSTRUCTION_REFERENCE: Record<number, InstructionReference> = {
     cycles: 6,
     description: 'Push Effective Indirect Address'
   },
-  
+
   0x62: {
     mnemonic: 'PER',
     opcode: 0x62,
@@ -2335,7 +2335,7 @@ export interface RegisterReference {
 
 export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
   // ===== PPU REGISTERS =====
-  
+
   0x2100: {
     address: 0x2100,
     name: 'INIDISP',
@@ -2355,7 +2355,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       'STA $2100'
     ]
   },
-  
+
   0x2101: {
     address: 0x2101,
     name: 'OBSEL',
@@ -2368,7 +2368,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '2-0', description: 'Name base address (addr>>14)' }
     ]
   },
-  
+
   0x2102: {
     address: 0x2102,
     name: 'OAMADDL',
@@ -2379,7 +2379,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'OAM address low byte' }
     ]
   },
-  
+
   0x2103: {
     address: 0x2103,
     name: 'OAMADDH',
@@ -2392,7 +2392,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: 0, description: 'OAM address bit 8' }
     ]
   },
-  
+
   0x2104: {
     address: 0x2104,
     name: 'OAMDATA',
@@ -2404,7 +2404,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
     ],
     notes: ['Write twice for word access']
   },
-  
+
   0x2105: {
     address: 0x2105,
     name: 'BGMODE',
@@ -2426,7 +2426,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       'STA $2105'
     ]
   },
-  
+
   0x2106: {
     address: 0x2106,
     name: 'MOSAIC',
@@ -2441,7 +2441,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: 0, description: 'BG1 mosaic enable' }
     ]
   },
-  
+
   0x210D: {
     address: 0x210D,
     name: 'BG1HOFS',
@@ -2453,7 +2453,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
     ],
     notes: ['13-bit value, Mode 7: different format']
   },
-  
+
   0x210E: {
     address: 0x210E,
     name: 'BG1VOFS',
@@ -2464,7 +2464,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'Vertical offset (write twice: low, high)' }
     ]
   },
-  
+
   0x210F: {
     address: 0x210F,
     name: 'BG2HOFS',
@@ -2475,7 +2475,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'Horizontal offset (write twice: low, high)' }
     ]
   },
-  
+
   0x2110: {
     address: 0x2110,
     name: 'BG2VOFS',
@@ -2486,7 +2486,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'Vertical offset (write twice: low, high)' }
     ]
   },
-  
+
   0x2111: {
     address: 0x2111,
     name: 'BG3HOFS',
@@ -2497,7 +2497,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'Horizontal offset (write twice: low, high)' }
     ]
   },
-  
+
   0x2112: {
     address: 0x2112,
     name: 'BG3VOFS',
@@ -2508,7 +2508,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'Vertical offset (write twice: low, high)' }
     ]
   },
-  
+
   0x2115: {
     address: 0x2115,
     name: 'VMAIN',
@@ -2523,7 +2523,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '1-0', description: 'Increment amount', values: { '00': '1', '01': '32', '10': '128', '11': '128' } }
     ]
   },
-  
+
   0x2116: {
     address: 0x2116,
     name: 'VMADDL',
@@ -2534,7 +2534,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'VRAM address low byte' }
     ]
   },
-  
+
   0x2117: {
     address: 0x2117,
     name: 'VMADDH',
@@ -2545,7 +2545,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'VRAM address high byte' }
     ]
   },
-  
+
   0x211C: {
     address: 0x211C,
     name: 'M7B',
@@ -2556,7 +2556,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'Matrix B (write twice: low, high)' }
     ]
   },
-  
+
   0x211D: {
     address: 0x211D,
     name: 'M7C',
@@ -2567,7 +2567,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'Matrix C (write twice: low, high)' }
     ]
   },
-  
+
   0x211F: {
     address: 0x211F,
     name: 'M7X',
@@ -2579,7 +2579,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
     ],
     notes: ['13-bit signed value']
   },
-  
+
   0x2120: {
     address: 0x2120,
     name: 'M7Y',
@@ -2590,7 +2590,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'Center Y (write twice: low, high)' }
     ]
   },
-  
+
   0x2121: {
     address: 0x2121,
     name: 'CGADD',
@@ -2601,7 +2601,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'CGRAM word address' }
     ]
   },
-  
+
   0x2123: {
     address: 0x2123,
     name: 'W12SEL',
@@ -2615,7 +2615,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '1-0', description: 'BG1 window 1' }
     ]
   },
-  
+
   0x2124: {
     address: 0x2124,
     name: 'W34SEL',
@@ -2629,7 +2629,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '1-0', description: 'BG3 window 1' }
     ]
   },
-  
+
   0x2125: {
     address: 0x2125,
     name: 'WOBJSEL',
@@ -2643,7 +2643,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '1-0', description: 'OBJ window 1' }
     ]
   },
-  
+
   0x212C: {
     address: 0x212C,
     name: 'TM',
@@ -2659,7 +2659,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: 0, description: 'BG1 enable' }
     ]
   },
-  
+
   0x212D: {
     address: 0x212D,
     name: 'TS',
@@ -2675,7 +2675,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: 0, description: 'BG1 enable' }
     ]
   },
-  
+
   0x212E: {
     address: 0x212E,
     name: 'TMW',
@@ -2691,7 +2691,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: 0, description: 'BG1 window enable' }
     ]
   },
-  
+
   0x212F: {
     address: 0x212F,
     name: 'TSW',
@@ -2707,7 +2707,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: 0, description: 'BG1 window enable' }
     ]
   },
-  
+
   0x2130: {
     address: 0x2130,
     name: 'CGWSEL',
@@ -2722,7 +2722,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: 0, description: 'Direct color mode for 256-color BG' }
     ]
   },
-  
+
   0x2131: {
     address: 0x2131,
     name: 'CGADSUB',
@@ -2740,7 +2740,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: 0, description: 'Enable color math on BG1' }
     ]
   },
-  
+
   0x2132: {
     address: 0x2132,
     name: 'COLDATA',
@@ -2755,9 +2755,9 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
     ],
     notes: ['Write 3 times for R, G, B']
   },
-  
+
   // ===== CPU REGISTERS =====
-  
+
   0x4200: {
     address: 0x4200,
     name: 'NMITIMEN',
@@ -2779,7 +2779,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       'STA $4200'
     ]
   },
-  
+
   0x4207: {
     address: 0x4207,
     name: 'HTIMEL',
@@ -2790,7 +2790,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'H Timer low byte' }
     ]
   },
-  
+
   0x4208: {
     address: 0x4208,
     name: 'HTIMEH',
@@ -2801,7 +2801,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'H Timer high byte' }
     ]
   },
-  
+
   0x4209: {
     address: 0x4209,
     name: 'VTIMEL',
@@ -2812,7 +2812,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'V Timer low byte' }
     ]
   },
-  
+
   0x420A: {
     address: 0x420A,
     name: 'VTIMEH',
@@ -2823,7 +2823,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'V Timer high byte' }
     ]
   },
-  
+
   0x420B: {
     address: 0x420B,
     name: 'MDMAEN',
@@ -2834,7 +2834,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'DMA channel enable (bit per channel)' }
     ]
   },
-  
+
   0x420C: {
     address: 0x420C,
     name: 'HDMAEN',
@@ -2845,9 +2845,9 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'HDMA channel enable (bit per channel)' }
     ]
   },
-  
+
   // ===== APU REGISTERS =====
-  
+
   0x2140: {
     address: 0x2140,
     name: 'APUIO0',
@@ -2858,7 +2858,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'APU communication port 0' }
     ]
   },
-  
+
   0x2141: {
     address: 0x2141,
     name: 'APUIO1',
@@ -2869,7 +2869,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'APU communication port 1' }
     ]
   },
-  
+
   0x2142: {
     address: 0x2142,
     name: 'APUIO2',
@@ -2880,7 +2880,7 @@ export const REGISTER_REFERENCE: Record<number, RegisterReference> = {
       { bit: '7-0', description: 'APU communication port 2' }
     ]
   },
-  
+
   0x2143: {
     address: 0x2143,
     name: 'APUIO3',
@@ -2907,22 +2907,22 @@ export function validateInstruction(opcode: number, expectedMnemonic?: string, e
 } {
   const reference = INSTRUCTION_REFERENCE[opcode];
   const discrepancies: string[] = [];
-  
+
   if (!reference) {
     return {
       isValid: false,
       discrepancies: [`Unknown opcode: $${opcode.toString(16).toUpperCase().padStart(2, '0')}`]
     };
   }
-  
+
   if (expectedMnemonic && reference.mnemonic !== expectedMnemonic) {
     discrepancies.push(`Mnemonic mismatch: expected ${expectedMnemonic}, got ${reference.mnemonic}`);
   }
-  
+
   if (expectedBytes && reference.bytes !== expectedBytes) {
     discrepancies.push(`Byte count mismatch: expected ${expectedBytes}, got ${reference.bytes}`);
   }
-  
+
   return {
     isValid: discrepancies.length === 0,
     reference,
@@ -2940,21 +2940,21 @@ export function validateRegister(address: number, operation: 'read' | 'write'): 
 } {
   const reference = REGISTER_REFERENCE[address];
   const warnings: string[] = [];
-  
+
   if (!reference) {
     return {
       isValid: false,
       warnings: [`Unknown register: $${address.toString(16).toUpperCase().padStart(4, '0')}`]
     };
   }
-  
+
   // Check access permissions
   if (reference.access === 'read' && operation === 'write') {
     warnings.push(`${reference.name} ($${address.toString(16).toUpperCase().padStart(4, '0')}) is read-only`);
   } else if (reference.access === 'write' && operation === 'read') {
     warnings.push(`${reference.name} ($${address.toString(16).toUpperCase().padStart(4, '0')}) is write-only`);
   }
-  
+
   return {
     isValid: true,
     reference,
@@ -2975,11 +2975,11 @@ export function getRegisterInfo(address: number): {
   if (!reference) {
     return {};
   }
-  
+
   const bitDescription = reference.bitLayout
     .map(bit => `Bit ${bit.bit}: ${bit.description}`)
     .join(', ');
-  
+
   return {
     name: reference.name,
     description: reference.description,
@@ -2996,17 +2996,17 @@ export function generateInstructionComment(opcode: number, _operand?: number): s
   if (!reference) {
     return '';
   }
-  
+
   let comment = `${reference.mnemonic} - ${reference.description}`;
-  
+
   if (reference.cycles) {
     comment += ` (${reference.cycles} cycles)`;
   }
-  
+
   if (reference.flagsAffected && reference.flagsAffected.length > 0) {
     comment += ` [${reference.flagsAffected.join(',')}]`;
   }
-  
+
   return comment;
 }
 
@@ -3018,19 +3018,19 @@ export function generateRegisterComment(address: number, operation: 'read' | 'wr
   if (!reference) {
     return '';
   }
-  
+
   let comment = `${reference.name} - ${reference.description}`;
-  
+
   if (reference.access !== 'read/write') {
     comment += ` (${reference.access}-only)`;
   }
-  
+
   // Add bit layout summary for write operations
   if (operation === 'write' && reference.bitLayout.length > 0) {
     const importantBits = reference.bitLayout
       .filter(bit => typeof bit.bit === 'number' && bit.values)
       .slice(0, 2); // Show first 2 important bits
-    
+
     if (importantBits.length > 0) {
       const bitDesc = importantBits
         .map(bit => `Bit ${bit.bit}: ${bit.description}`)
@@ -3038,6 +3038,6 @@ export function generateRegisterComment(address: number, operation: 'read' | 'wr
       comment += ` [${bitDesc}]`;
     }
   }
-  
+
   return comment;
 }

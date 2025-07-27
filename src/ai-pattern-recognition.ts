@@ -1,6 +1,6 @@
 /**
  * AI-Powered Pattern Recognition for SNES Asset Extraction
- * 
+ *
  * This module provides GenAI-enhanced pattern recognition capabilities
  * to make asset extraction generic across all SNES games, avoiding
  * game-specific implementations.
@@ -56,8 +56,8 @@ export interface CompressionInfo {
 }
 
 // Import real AI model implementations
-import { 
-  ViTGraphicsClassifier, 
+import {
+  ViTGraphicsClassifier,
   DistilBERTSequenceClassifier,
   AICompressionDetector
 } from './ai-models-implementation';
@@ -70,7 +70,7 @@ export class AIPatternRecognizer {
   private graphicsClassifier?: ViTGraphicsClassifier;
   private sequenceClassifier?: DistilBERTSequenceClassifier;
   private compressionDetector?: AICompressionDetector;
-  
+
   constructor(private modelPath?: string) {
     // Initialize AI models - placeholders for future implementation
     this.initializeModels();
@@ -102,7 +102,7 @@ export class AIPatternRecognizer {
     // Process as byte sequence for transformer classification
     const sequence = data.slice(offset, offset + Math.min(2048, data.length - offset));
     const aiResult = await this.sequenceClassifier.classifyAudio(sequence);
-    
+
     // Enhance AI result with additional pattern analysis
     return this.enhanceAudioClassification(aiResult, data, offset);
   }
@@ -144,11 +144,11 @@ export class AIPatternRecognizer {
     confidence: number;
   }> {
     const region = data.slice(offset, offset + length);
-    
+
     // Run all classifiers in parallel
     const [graphics2bpp, graphics4bpp, graphics8bpp, audio, text, compression] = await Promise.all([
       this.classifyGraphicsData(region, '2bpp'),
-      this.classifyGraphicsData(region, '4bpp'), 
+      this.classifyGraphicsData(region, '4bpp'),
       this.classifyGraphicsData(region, '8bpp'),
       this.classifyAudioData(region),
       this.classifyTextData(region),
@@ -166,7 +166,7 @@ export class AIPatternRecognizer {
       { type: 'text' as const, confidence: text.confidence }
     ];
 
-    const mostLikely = candidates.reduce((best, current) => 
+    const mostLikely = candidates.reduce((best, current) =>
       current.confidence > best.confidence ? current : best
     );
 
@@ -184,11 +184,11 @@ export class AIPatternRecognizer {
     try {
       // Load real pre-trained models from HuggingFace
       console.log('🧠 Initializing real AI models...');
-      
+
       this.graphicsClassifier = new ViTGraphicsClassifier(this.modelPath);
       this.sequenceClassifier = new DistilBERTSequenceClassifier(this.modelPath);
       this.compressionDetector = new AICompressionDetector();
-      
+
       // Models are initialized lazily when first used
       console.log('✅ AI model framework initialized successfully');
     } catch (error) {
@@ -202,24 +202,24 @@ export class AIPatternRecognizer {
     const bpp = format === '2bpp' ? 2 : format === '4bpp' ? 4 : 8;
     const bytesPerTile = bpp * 8; // 8x8 tile
     const numTiles = Math.floor(data.length / bytesPerTile);
-    
+
     // Create RGB image from tiles for Vision Transformer
     const imageWidth = Math.ceil(Math.sqrt(numTiles)) * 8;
     const imageHeight = Math.ceil(numTiles / (imageWidth / 8)) * 8;
     const imageData = new Uint8ClampedArray(imageWidth * imageHeight * 4); // RGBA
-    
+
     // Convert each tile to RGB (simplified conversion)
     for (let tileIndex = 0; tileIndex < numTiles; tileIndex++) {
       const tileOffset = tileIndex * bytesPerTile;
       const tileX = (tileIndex % (imageWidth / 8)) * 8;
       const tileY = Math.floor(tileIndex / (imageWidth / 8)) * 8;
-      
+
       for (let y = 0; y < 8; y++) {
         for (let x = 0; x < 8; x++) {
           // Simplified pixel extraction (would need proper planar conversion)
           const pixelValue = data[tileOffset + y * 2 + Math.floor(x / 4)] || 0;
           const intensity = (pixelValue & (0x3 << ((x % 4) * 2))) * 64; // Scale to 0-255
-          
+
           const pixelIndex = ((tileY + y) * imageWidth + (tileX + x)) * 4;
           imageData[pixelIndex] = intensity;     // R
           imageData[pixelIndex + 1] = intensity; // G
@@ -228,7 +228,7 @@ export class AIPatternRecognizer {
         }
       }
     }
-    
+
     return { data: imageData, width: imageWidth, height: imageHeight };
   }
 
@@ -237,10 +237,10 @@ export class AIPatternRecognizer {
     const entropy = this.calculateEntropy(data);
     const repetition = this.calculateRepetitionScore(data);
     const patterns = this.detectCommonPatterns(data);
-    
+
     let type: GraphicsClassification['type'] = 'tile';
     let confidence = 0.5;
-    
+
     // Sprite detection: lower entropy, more structured patterns
     if (entropy < 3.0 && patterns.sprites > 0.6) {
       type = 'sprite';
@@ -261,7 +261,7 @@ export class AIPatternRecognizer {
       type = 'background';
       confidence = 0.6;
     }
-    
+
     return {
       type,
       confidence,
@@ -275,13 +275,13 @@ export class AIPatternRecognizer {
    */
   private enhancedHeuristicAudioClassification(data: Uint8Array, offset: number): AudioClassification {
     const sample = data.slice(offset, Math.min(data.length, offset + 1024));
-    
+
     // Enhanced BRR sample detection with boundary analysis
     const brrDetected = this.detectBRRPattern(sample, offset);
     if (brrDetected) {
       const sampleClassification = this.detectSampleType(sample);
       const boundaryQuality = this.heuristicAudioBoundaries(data, offset);
-      
+
       return {
         type: 'brr_sample',
         confidence: 0.8,
@@ -295,7 +295,7 @@ export class AIPatternRecognizer {
         boundaryQuality
       };
     }
-    
+
     // Enhanced sequence detection with music pattern analysis
     const sequenceDetected = this.detectSequencePattern(sample, offset);
     if (sequenceDetected) {
@@ -307,7 +307,7 @@ export class AIPatternRecognizer {
         musicPattern: this.detectMusicPattern(sample)
       };
     }
-    
+
     // SPC code detection (common opcodes and patterns)
     if (this.detectSPCCodePattern(sample, 0)) {
       return {
@@ -316,7 +316,7 @@ export class AIPatternRecognizer {
         encoding: 'raw'
       };
     }
-    
+
     // Default fallback with low confidence
     return {
       type: 'brr_sample',
@@ -325,28 +325,28 @@ export class AIPatternRecognizer {
       boundaryQuality: 0.1
     };
   }
-  
+
   /**
    * Enhance AI classification results with additional pattern analysis
    */
   private enhanceAudioClassification(aiResult: AudioClassification, data: Uint8Array, offset: number): AudioClassification {
     const sample = data.slice(offset, Math.min(data.length, offset + 1024));
-    
+
     // Add boundary quality analysis
     const boundaryQuality = this.heuristicAudioBoundaries(data, offset);
-    
+
     // Add music pattern analysis if it's a sequence
     let musicPattern;
     if (aiResult.type === 'sequence') {
       musicPattern = this.detectMusicPattern(sample);
     }
-    
+
     // Add detailed sample classification if it's a BRR sample
     let sampleClassification;
     if (aiResult.type === 'brr_sample' || aiResult.type === 'instrument') {
       sampleClassification = this.detectSampleType(sample);
     }
-    
+
     return {
       ...aiResult,
       boundaryQuality,
@@ -360,7 +360,7 @@ export class AIPatternRecognizer {
 
   private heuristicTextClassification(data: Uint8Array, offset: number): TextClassification {
     const sample = data.slice(offset, offset + Math.min(256, data.length - offset));
-    
+
     // ASCII detection
     let asciiScore = 0;
     for (const byte of sample) {
@@ -368,7 +368,7 @@ export class AIPatternRecognizer {
         asciiScore++;
       }
     }
-    
+
     if (asciiScore / sample.length > 0.8) {
       return {
         type: 'credits',
@@ -377,7 +377,7 @@ export class AIPatternRecognizer {
         compression: 'none'
       };
     }
-    
+
     // Dictionary compression detection (ALTTP-style)
     if (this.detectDictionaryCompression(sample)) {
       return {
@@ -387,7 +387,7 @@ export class AIPatternRecognizer {
         compression: 'dictionary'
       };
     }
-    
+
     // DTE compression detection
     if (this.detectDTECompression(sample)) {
       return {
@@ -397,7 +397,7 @@ export class AIPatternRecognizer {
         compression: 'dte'
       };
     }
-    
+
     return {
       type: 'menu',
       confidence: 0.4,
@@ -409,7 +409,7 @@ export class AIPatternRecognizer {
   private statisticalCompressionDetection(data: Uint8Array): CompressionInfo {
     const entropy = this.calculateEntropy(data);
     const repetition = this.calculateRepetitionScore(data);
-    
+
     // High compression typically has higher entropy
     if (entropy > 7.5) {
       return {
@@ -417,7 +417,7 @@ export class AIPatternRecognizer {
         confidence: 0.7
       };
     }
-    
+
     // RLE compression has low entropy, high repetition
     if (entropy < 4.0 && repetition > 0.7) {
       return {
@@ -425,7 +425,7 @@ export class AIPatternRecognizer {
         confidence: 0.8
       };
     }
-    
+
     // LZ77 has moderate entropy, structured patterns
     if (entropy > 5.0 && entropy < 7.0) {
       return {
@@ -433,7 +433,7 @@ export class AIPatternRecognizer {
         confidence: 0.6
       };
     }
-    
+
     return {
       type: 'none',
       confidence: 0.5
@@ -445,7 +445,7 @@ export class AIPatternRecognizer {
     for (const byte of data) {
       freq[byte]++;
     }
-    
+
     let entropy = 0;
     for (const count of freq) {
       if (count > 0) {
@@ -453,20 +453,20 @@ export class AIPatternRecognizer {
         entropy -= prob * Math.log2(prob);
       }
     }
-    
+
     return entropy;
   }
 
   private calculateRepetitionScore(data: Uint8Array): number {
     let repetitions = 0;
     const total = data.length - 1;
-    
+
     for (let i = 0; i < total; i++) {
       if (data[i] === data[i + 1]) {
         repetitions++;
       }
     }
-    
+
     return repetitions / total;
   }
 
@@ -479,7 +479,7 @@ export class AIPatternRecognizer {
     const sprites = this.detectSpritePatterns(data);
     const characters = this.detectCharacterPatterns(data);
     const textures = this.detectTexturePatterns(data);
-    
+
     return { sprites, characters, textures };
   }
 
@@ -487,14 +487,14 @@ export class AIPatternRecognizer {
     // Look for common sprite characteristics
     let score = 0;
     const sampleSize = Math.min(64, data.length);
-    
+
     // Empty areas (common in sprites)
     let emptyBytes = 0;
     for (let i = 0; i < sampleSize; i++) {
       if (data[i] === 0) emptyBytes++;
     }
     score += (emptyBytes / sampleSize) * 0.5;
-    
+
     // Edge detection patterns
     for (let i = 0; i < sampleSize - 8; i += 8) {
       const row1 = data.slice(i, i + 8);
@@ -503,7 +503,7 @@ export class AIPatternRecognizer {
         score += 0.1;
       }
     }
-    
+
     return Math.min(score, 1.0);
   }
 
@@ -512,7 +512,7 @@ export class AIPatternRecognizer {
     const blockSize = 8;
     let characterLike = 0;
     let totalBlocks = 0;
-    
+
     for (let i = 0; i < data.length - blockSize; i += blockSize) {
       const block = data.slice(i, i + blockSize);
       if (this.hasCharacterLikePattern(block)) {
@@ -520,7 +520,7 @@ export class AIPatternRecognizer {
       }
       totalBlocks++;
     }
-    
+
     return totalBlocks > 0 ? characterLike / totalBlocks : 0;
   }
 
@@ -528,29 +528,29 @@ export class AIPatternRecognizer {
     // Look for texture-like repeating patterns
     const entropy = this.calculateEntropy(data);
     const variation = this.calculateVariation(data);
-    
+
     // Textures typically have moderate entropy and variation
     if (entropy > 4.0 && entropy < 6.0 && variation > 0.3) {
       return 0.7;
     }
-    
+
     return 0.3;
   }
 
   private calculateVariation(data: Uint8Array): number {
     if (data.length < 2) return 0;
-    
+
     let sum = 0;
     let sumSquares = 0;
-    
+
     for (const byte of data) {
       sum += byte;
       sumSquares += byte * byte;
     }
-    
+
     const mean = sum / data.length;
     const variance = (sumSquares / data.length) - (mean * mean);
-    
+
     return Math.sqrt(variance) / 255; // Normalize to 0-1
   }
 
@@ -569,35 +569,35 @@ export class AIPatternRecognizer {
     // Check for character-like properties
     const nonZero = block.filter(b => b !== 0).length;
     const entropy = this.calculateEntropy(block);
-    
+
     // Characters typically have some structure but not too much complexity
     return nonZero >= 3 && nonZero <= 6 && entropy > 1.0 && entropy < 4.0;
   }
 
   private detectBRRPattern(data: Uint8Array, offset: number): boolean {
     if (offset + 9 >= data.length) return false;
-    
+
     const header = data[offset];
     const shift = (header & 0x0C) >> 2;
     const filter = (header & 0x30) >> 4;
-    
+
     // Valid BRR header ranges
     return shift <= 12 && filter <= 3;
   }
 
   private detectSPCCodePattern(data: Uint8Array, offset: number): boolean {
     if (offset + 16 >= data.length) return false;
-    
+
     // Look for common SPC700 opcodes
     const commonOpcodes = [0x8F, 0xCD, 0x3F, 0x2F, 0x6F, 0x7F]; // MOV, MOV, CALL, BRA, etc.
     let opcodeMatches = 0;
-    
+
     for (let i = 0; i < 16; i++) {
       if (commonOpcodes.includes(data[offset + i])) {
         opcodeMatches++;
       }
     }
-    
+
     return opcodeMatches >= 3; // At least 3 common opcodes in 16 bytes
   }
 
@@ -605,7 +605,7 @@ export class AIPatternRecognizer {
     // Look for music sequence patterns (simplified)
     const sample = data.slice(offset, offset + Math.min(32, data.length - offset));
     const entropy = this.calculateEntropy(sample);
-    
+
     // Music sequences typically have moderate entropy
     return entropy > 3.0 && entropy < 6.0;
   }
@@ -614,28 +614,28 @@ export class AIPatternRecognizer {
     // Look for dictionary compression indicators
     let shortValues = 0;
     let totalBytes = 0;
-    
+
     for (const byte of data) {
       if (byte < 128) { // Dictionary indices typically smaller
         shortValues++;
       }
       totalBytes++;
     }
-    
+
     return totalBytes > 0 && (shortValues / totalBytes) > 0.7;
   }
 
   private detectDTECompression(data: Uint8Array): boolean {
     // DTE uses specific byte ranges for compressed pairs
     let dteIndicators = 0;
-    
+
     for (const byte of data) {
       // Common DTE ranges
       if ((byte >= 0x80 && byte <= 0xFF) || byte === 0x01 || byte === 0x02) {
         dteIndicators++;
       }
     }
-    
+
     return dteIndicators > data.length * 0.3; // 30% of bytes are DTE indicators
   }
 
@@ -650,7 +650,7 @@ export class AIPatternRecognizer {
   } {
     const entropy = this.calculateEntropy(data);
     const variation = this.calculateVariation(data);
-    
+
     // Simple heuristic classification based on entropy and variation
     if (entropy < 2.0 && variation < 0.1) {
       return { category: 'percussion', instrumentType: 'drum' };
@@ -670,11 +670,11 @@ export class AIPatternRecognizer {
     // Simple boundary quality assessment
     const windowSize = Math.min(64, data.length - offset);
     const window = data.slice(offset, offset + windowSize);
-    
+
     // Check for clean boundaries (low noise at edges)
     const startNoise = Math.abs(window[0] - 128) / 128;
     const endNoise = Math.abs(window[window.length - 1] - 128) / 128;
-    
+
     return 1.0 - (startNoise + endNoise) / 2;
   }
 
@@ -689,11 +689,11 @@ export class AIPatternRecognizer {
   } {
     const entropy = this.calculateEntropy(data);
     const variation = this.calculateVariation(data);
-    
+
     // Simple pattern detection based on statistical properties
     const melodyComplexity = entropy / 8.0; // Normalize to 0-1
     const rhythmPattern = variation > 0.5 ? 'complex' : 'simple';
-    
+
     return {
       melodyComplexity,
       rhythmPattern,

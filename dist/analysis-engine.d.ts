@@ -4,7 +4,7 @@
  */
 import { DisassemblyLine } from './types';
 import { CartridgeInfo } from './cartridge-types';
-export interface BasicBlock {
+interface BasicBlock {
     id: string;
     startAddress: number;
     endAddress: number;
@@ -63,19 +63,19 @@ export interface DataStructure {
     confidence: number;
     format?: string;
 }
-export interface JumpTable {
+interface JumpTable {
     address: number;
     entries: number[];
     targets: number[];
     type: 'ABSOLUTE' | 'RELATIVE' | 'INDIRECT';
 }
-export interface PointerTable {
+interface PointerTable {
     address: number;
     pointers: number[];
     targets: number[];
     format: 'WORD' | 'LONG';
 }
-export interface SpriteDataInfo {
+interface SpriteDataInfo {
     address: number;
     hitboxes: {
         x: number;
@@ -86,7 +86,7 @@ export interface SpriteDataInfo {
     animationFrames: number;
     tileReferences: number[];
 }
-export interface HardwareRegisterUsage {
+interface HardwareRegisterUsage {
     register: string;
     address: number;
     reads: number;
@@ -358,7 +358,7 @@ export declare class AnalysisEngine {
      */
     private enhanceSymbolWithInstructionContext;
 }
-export interface CodeQualityMetrics {
+interface CodeQualityMetrics {
     totalInstructions: number;
     codeBytes: number;
     dataBytes: number;
@@ -380,4 +380,5 @@ export interface CodeQualityMetrics {
         severity: 'LOW' | 'MEDIUM' | 'HIGH';
     }>;
 }
+export {};
 //# sourceMappingURL=analysis-engine.d.ts.map

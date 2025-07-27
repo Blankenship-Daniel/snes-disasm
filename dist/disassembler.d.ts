@@ -13,6 +13,7 @@ export declare class SNESDisassembler {
     private validationEngine;
     private enableValidation;
     private enhanceComments;
+    private logger;
     constructor(romPath: string, options?: DisassemblerOptions);
     getRomInfo(): SNESRom;
     disassemble(startAddress?: number, endAddress?: number): DisassemblyLine[];

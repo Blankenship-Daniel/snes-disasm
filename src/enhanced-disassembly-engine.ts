@@ -1,6 +1,6 @@
 /**
  * Enhanced SNES Disassembly Engine
- * 
+ *
  * Implements enhanced disassembly algorithms using MCP server insights
  * for improved bank-aware addressing, function detection, and pattern recognition.
  */
@@ -140,7 +140,7 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     const romInfo = this.getRomInfo();
     const romSize = romInfo.data.length;
     const vectorArea = romInfo.data.slice(romSize - 0x20);
-    
+
     const vectors = [
       { name: 'RESET', offset: 0x1C },
       { name: 'IRQ', offset: 0x1E },
@@ -176,7 +176,7 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
 
       // Analyze bank content using pattern recognition
       const bankType = this.classifyBankContent(bankData, bank);
-      
+
       this.analysis.bankLayout.push({
         bank,
         start: bankStart,
@@ -214,7 +214,7 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     if (emptyRatio > 0.8) return 'Empty/Padding';
     if (codeRatio > 0.6) return 'Code';
     if (bankNumber === 0) return 'Header/Bootstrap';
-    
+
     return 'Data/Graphics';
   }
 
@@ -227,7 +227,7 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
       0x18, 0x38, 0x58, 0x78,       // Flag operations
       0xEA, 0x60, 0x40              // NOP, RTS, RTI
     ];
-    
+
     return commonOpcodes.includes(byte);
   }
 
@@ -268,13 +268,13 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
   private async findFunctionsInChunk(chunk: {data: number[], offset: number, size: number}): Promise<any[]> {
     const functions = [];
     const data = chunk.data;
-    
+
     for (let i = 0; i < data.length - 3; i++) {
       // Look for JSR targets (common function entry pattern)
       if (data[i] === 0x20) { // JSR absolute
         const target = data[i + 1] | (data[i + 2] << 8);
         const targetOffset = target - 0x8000 + chunk.offset;
-        
+
         const romInfo = this.getRomInfo();
         if (targetOffset >= 0 && targetOffset < romInfo.data.length) {
           // Check if this looks like a function entry
@@ -302,17 +302,17 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
 
     // Common function entry patterns
     const firstByte = bytes[0];
-    
+
     // Stack operations often start functions
     if (firstByte === 0x48 || firstByte === 0xDA || firstByte === 0x5A) { // PHA, PHX, PHY
       return true;
     }
-    
+
     // Register setup
     if (firstByte === 0xA9 || firstByte === 0xA2 || firstByte === 0xA0) { // LDA, LDX, LDY immediate
       return true;
     }
-    
+
     // Mode changes
     if (firstByte === 0x18 || firstByte === 0x38 || firstByte === 0x78 || firstByte === 0x58) {
       return true;
@@ -329,7 +329,7 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     const romInfo = this.getRomInfo();
     while (size < maxSize && offset < romInfo.data.length) {
       const byte = romInfo.data[offset];
-      
+
       // Look for function end patterns
       if (byte === 0x60 || byte === 0x40) { // RTS or RTI
         size += 1;
@@ -350,7 +350,7 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     // This would need to be more sophisticated for production use
     const threeByte = [0x4C, 0x20, 0xAD, 0x8D, 0xBD, 0x9D, 0xB9, 0x99]; // JMP, JSR, absolute modes
     const twoByte = [0xA9, 0xA2, 0xA0, 0x85, 0x86, 0x84]; // Immediate, zero page
-    
+
     if (threeByte.includes(opcode)) return 3;
     if (twoByte.includes(opcode)) return 2;
     return 1; // Single byte instructions
@@ -360,7 +360,7 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     for (const func of this.analysis.functions) {
       // Generate meaningful labels based on function characteristics
       let labelName = func.name;
-      
+
       // Analyze function content to provide better names
       const romInfo = this.getRomInfo();
       // Calculate ROM offset from address (assuming LoROM mapping for now)
@@ -368,14 +368,14 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
       if (romOffset < romInfo.data.length) {
         const functionData = romInfo.data.slice(romOffset, romOffset + Math.min(func.size, 64));
         const analysis = this.analyzeFunctionContent(functionData);
-        
+
         if (analysis.type) {
           labelName = `${analysis.type}_${func.address.toString(16).toUpperCase()}`;
           func.type = analysis.type;
           func.description = analysis.description;
         }
       }
-      
+
       func.name = labelName;
       this.stats.labelsGenerated++;
     }
@@ -386,7 +386,7 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     const hasGraphicsOps = data.some(byte => [0x8D, 0x8F].includes(byte)); // STA to PPU registers
     const hasAudioOps = data.some(byte => byte >= 0x2140 && byte <= 0x2143);
     const hasControllerRead = data.some(byte => [0x4016, 0x4017].includes(byte));
-    
+
     if (hasGraphicsOps) {
       return { type: 'Graphics', description: 'Handles graphics operations' };
     }
@@ -396,14 +396,14 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     if (hasControllerRead) {
       return { type: 'Input', description: 'Reads controller input' };
     }
-    
+
     return {};
   }
 
   private async analyzeDataStructures(): Promise<void> {
     // Analyze ROM for common data structures
     const structures = [];
-    
+
     // Look for pointer tables
     const romInfo = this.getRomInfo();
     for (let offset = 0; offset < romInfo.data.length - 32; offset += 2) {
@@ -429,7 +429,7 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
   private isLikelyPointerTable(offset: number): boolean {
     // Check if we have consecutive valid ROM addresses
     let validPointers = 0;
-    
+
     const romInfo = this.getRomInfo();
     for (let i = 0; i < 8; i++) {
       const ptr = romInfo.data.readUInt16LE(offset + i * 2);
@@ -437,13 +437,13 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
         validPointers++;
       }
     }
-    
+
     return validPointers >= 6; // At least 6 out of 8 look valid
   }
 
   private getPointerTableSize(offset: number): number {
     let size = 0;
-    
+
     const romInfo = this.getRomInfo();
     while (offset + size * 2 < romInfo.data.length - 2) {
       const ptr = romInfo.data.readUInt16LE(offset + size * 2);
@@ -451,22 +451,22 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
         break;
       }
       size++;
-      
+
       // Reasonable limit
       if (size > 256) break;
     }
-    
+
     return size;
   }
 
   private findGraphicsDataRegions(): any[] {
     const regions = [];
-    
+
     // Look for patterns typical of graphics data
     const romInfo = this.getRomInfo();
     for (let offset = 0x8000; offset < romInfo.data.length - 0x400; offset += 0x100) {
       const chunk = romInfo.data.slice(offset, offset + 0x400);
-      
+
       if (this.isLikelyGraphicsData(chunk)) {
         const regionEnd = this.findGraphicsRegionEnd(offset);
         regions.push({
@@ -475,32 +475,32 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
           end: regionEnd,
           size: regionEnd - offset
         });
-        
+
         offset = regionEnd; // Skip ahead
       }
     }
-    
+
     return regions;
   }
 
   private isLikelyGraphicsData(data: Buffer): boolean {
     // Graphics data often has repeating patterns and limited value ranges
     const valueCounts = new Array(256).fill(0);
-    
+
     for (const byte of data) {
       valueCounts[byte]++;
     }
-    
+
     // Count how many different values appear
     const uniqueValues = valueCounts.filter(count => count > 0).length;
-    
+
     // Graphics data typically uses a limited palette
     return uniqueValues < 64 && uniqueValues > 8;
   }
 
   private findGraphicsRegionEnd(start: number): number {
     let end = start + 0x400;
-    
+
     const romInfo = this.getRomInfo();
     while (end < romInfo.data.length - 0x100) {
       const chunk = romInfo.data.slice(end, end + 0x100);
@@ -509,7 +509,7 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
       }
       end += 0x100;
     }
-    
+
     return Math.min(end, romInfo.data.length);
   }
 
@@ -518,10 +518,10 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     try {
       // This would integrate with the zelda3 MCP server for ALTTP-specific patterns
       // or other game-specific servers for pattern recognition
-      
+
       // For now, implement basic pattern recognition
       this.recognizeCommonPatterns();
-      
+
     } catch (error) {
       console.warn('Game pattern recognition failed:', error);
       this.recognizeCommonPatterns();
@@ -530,13 +530,13 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
 
   private recognizeCommonPatterns(): void {
     // Recognize common SNES game patterns
-    
+
     // Look for DMA patterns
     this.findDMAPatterns();
-    
+
     // Look for PPU register usage patterns
     this.findPPUPatterns();
-    
+
     // Look for common game loop patterns
     this.findGameLoopPatterns();
   }
@@ -596,7 +596,7 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
       if (romInfo.data[offset] === 0x4C) { // JMP absolute
         const target = romInfo.data.readUInt16LE(offset + 1);
         const currentAddr = offset + 0x8000;
-        
+
         // If jumping backwards by a reasonable amount, might be a game loop
         if (target < currentAddr && (currentAddr - target) < 0x100 && (currentAddr - target) > 0x10) {
           this.analysis.functions.push({
@@ -622,11 +622,11 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
   // Override the parent disassemble method to add enhanced features
   disassemble(startAddress?: number, endAddress?: number): any[] {
     const baseResult = super.disassemble(startAddress, endAddress);
-    
+
     if (this.options.bankAware) {
       return this.enhanceWithBankInfo(baseResult);
     }
-    
+
     return baseResult;
   }
 

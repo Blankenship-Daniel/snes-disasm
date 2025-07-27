@@ -1,6 +1,6 @@
 /**
  * MCP Integration Module
- * 
+ *
  * This module provides integration with Model Context Protocol (MCP) servers
  * for enhanced analysis capabilities. Currently provides stubs that can be
  * replaced with actual MCP server connections.
@@ -20,37 +20,37 @@ export interface MCPToolOptions {
  */
 export async function callMCPTool(toolName: string, options: MCPToolOptions): Promise<any> {
   console.warn(`MCP tool "${toolName}" called but not implemented - using fallback`);
-  
+
   // Return minimal stub responses for different tools
   switch (toolName) {
-    case 'extract_code':
-      return {
-        vectors: null, // Will trigger fallback
-        success: false
-      };
-    
-    case 'analyze_patterns':
-      return {
-        patterns: [],
-        confidence: 0
-      };
-    
-    default:
-      throw new Error(`Unknown MCP tool: ${toolName}`);
+  case 'extract_code':
+    return {
+      vectors: null, // Will trigger fallback
+      success: false
+    };
+
+  case 'analyze_patterns':
+    return {
+      patterns: [],
+      confidence: 0
+    };
+
+  default:
+    throw new Error(`Unknown MCP tool: ${toolName}`);
   }
 }
 
 /**
  * Check if MCP integration is available
  */
-export function isMCPAvailable(): boolean {
+function isMCPAvailable(): boolean {
   return false; // Stub implementation
 }
 
 /**
  * Initialize MCP connection (stub)
  */
-export async function initializeMCP(): Promise<boolean> {
+async function initializeMCP(): Promise<boolean> {
   console.log('MCP integration not implemented - using fallback methods');
   return false;
 }

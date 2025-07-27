@@ -1,9 +1,9 @@
 /**
  * Phase 4: Output & Integration - Multiple Output Formats
- * 
+ *
  * Implements various assembler formats and output types for SNES disassembly:
  * - ca65-compatible assembly source files
- * - WLA-DX assembler format support  
+ * - WLA-DX assembler format support
  * - bass assembler output format
  * - HTML output with hyperlinked cross-references
  * - JSON/XML export for external tools
@@ -48,8 +48,8 @@ export abstract class OutputFormatter {
   protected crossRefs: CrossReference[];
   protected options: OutputOptions;
 
-  constructor(rom: SNESRom, symbols: Map<number, SymbolTableEntry> = new Map(), 
-              crossRefs: CrossReference[] = [], options: OutputOptions = {}) {
+  constructor(rom: SNESRom, symbols: Map<number, SymbolTableEntry> = new Map(),
+    crossRefs: CrossReference[] = [], options: OutputOptions = {}) {
     this.rom = rom;
     this.symbols = symbols;
     this.crossRefs = crossRefs;
@@ -119,23 +119,23 @@ export abstract class OutputFormatter {
     // Format based on addressing mode
     const operand = line.operand;
     switch (line.instruction.addressingMode) {
-      case '#': // Immediate
-        if (operand <= 0xFF) {
-          return `#${this.formatAddress(operand).slice(1, 3)}`;
-        } else {
-          return `#${this.formatAddress(operand).slice(1, 5)}`;
-        }
-      case 'abs': // Absolute
-      case 'long': // Absolute Long
-        return this.formatAddress(operand);
-      case 'zp': // Zero Page
-      case 'dp': // Direct Page
-        return this.formatAddress(operand).slice(-2);
-      case 'rel': // Relative
-      case 'rell': // Relative Long
-        return this.formatAddress(operand);
-      default:
-        return this.formatAddress(operand);
+    case '#': // Immediate
+      if (operand <= 0xFF) {
+        return `#${this.formatAddress(operand).slice(1, 3)}`;
+      } else {
+        return `#${this.formatAddress(operand).slice(1, 5)}`;
+      }
+    case 'abs': // Absolute
+    case 'long': // Absolute Long
+      return this.formatAddress(operand);
+    case 'zp': // Zero Page
+    case 'dp': // Direct Page
+      return this.formatAddress(operand).slice(-2);
+    case 'rel': // Relative
+    case 'rell': // Relative Long
+      return this.formatAddress(operand);
+    default:
+      return this.formatAddress(operand);
     }
   }
 
@@ -167,17 +167,17 @@ export class CA65Formatter extends OutputFormatter {
 
   format(lines: DisassemblyLine[]): string {
     const output: string[] = [];
-    
+
     // Add assembler-specific directives
     output.push(...this.generateHeader());
     output.push('; CA65 Assembler Configuration');
     output.push('.p816                    ; Enable 65816 mode');
     output.push('.smart                   ; Enable smart mode');
     output.push('');
-    
+
     // Add memory mapping directives based on cartridge type
     this.addMemoryMapping(output);
-    
+
     // Add symbols table
     if (this.options.includeSymbols && this.symbols.size > 0) {
       output.push('; Symbol Definitions');
@@ -202,31 +202,31 @@ export class CA65Formatter extends OutputFormatter {
 
   private addMemoryMapping(output: string[]): void {
     output.push('; Memory Mapping Configuration');
-    
+
     switch (this.rom.cartridgeInfo.type) {
-      case 'LoROM':
-        output.push('.segment "CODE"         ; LoROM Code Segment');
-        output.push('.org $8000              ; LoROM Bank 0 Start');
-        break;
-      case 'HiROM':
-        output.push('.segment "CODE"         ; HiROM Code Segment');
-        output.push('.org $C000              ; HiROM Bank 0 Start');
-        break;
-      case 'ExLoROM':
-        output.push('.segment "CODE"         ; ExLoROM Code Segment');
-        output.push('.org $8000              ; ExLoROM Bank 0 Start');
-        break;
-      case 'ExHiROM':
-        output.push('.segment "CODE"         ; ExHiROM Code Segment');
-        output.push('.org $C000              ; ExHiROM Bank 0 Start');
-        break;
+    case 'LoROM':
+      output.push('.segment "CODE"         ; LoROM Code Segment');
+      output.push('.org $8000              ; LoROM Bank 0 Start');
+      break;
+    case 'HiROM':
+      output.push('.segment "CODE"         ; HiROM Code Segment');
+      output.push('.org $C000              ; HiROM Bank 0 Start');
+      break;
+    case 'ExLoROM':
+      output.push('.segment "CODE"         ; ExLoROM Code Segment');
+      output.push('.org $8000              ; ExLoROM Bank 0 Start');
+      break;
+    case 'ExHiROM':
+      output.push('.segment "CODE"         ; ExHiROM Code Segment');
+      output.push('.org $C000              ; ExHiROM Bank 0 Start');
+      break;
     }
     output.push('');
   }
 
   private formatCA65Line(line: DisassemblyLine): string {
     let output = '';
-    
+
     // Add label if present
     if (line.label) {
       output += `${line.label}:\n`;
@@ -246,10 +246,10 @@ export class CA65Formatter extends OutputFormatter {
     }
 
     // Format instruction
-    const mnemonic = this.options.uppercase ? 
-      line.instruction.mnemonic.toUpperCase() : 
+    const mnemonic = this.options.uppercase ?
+      line.instruction.mnemonic.toUpperCase() :
       line.instruction.mnemonic.toLowerCase();
-    
+
     output += mnemonic.padEnd(4);
 
     // Format operand
@@ -265,7 +265,7 @@ export class CA65Formatter extends OutputFormatter {
 
     // Add timing information if requested
     if (this.options.includeTiming) {
-      const cycles = typeof line.instruction.cycles === 'number' ? 
+      const cycles = typeof line.instruction.cycles === 'number' ?
         line.instruction.cycles : line.instruction.cycles.base;
       output = output.padEnd(60) + ` ; ${cycles} cycles`;
     }
@@ -285,7 +285,7 @@ export class WLADXFormatter extends OutputFormatter {
 
   format(lines: DisassemblyLine[]): string {
     const output: string[] = [];
-    
+
     // Add WLA-DX specific directives
     output.push(...this.generateHeader());
     output.push('; WLA-DX Assembler Configuration');
@@ -293,7 +293,7 @@ export class WLADXFormatter extends OutputFormatter {
     this.addWLAMemoryMapping(output);
     output.push('.ENDME');
     output.push('');
-    
+
     output.push('.ROMBANKSIZE $8000      ; 32KB ROM banks');
     output.push('.ROMBANKS 32           ; Number of ROM banks');
     output.push('');
@@ -329,32 +329,32 @@ export class WLADXFormatter extends OutputFormatter {
 
   private addWLAMemoryMapping(output: string[]): void {
     switch (this.rom.cartridgeInfo.type) {
-      case 'LoROM':
-        output.push('SLOTSIZE $8000         ; 32KB slots');
-        output.push('DEFAULTSLOT 0');
-        output.push('SLOT 0 $8000           ; Bank 0 at $8000-$FFFF');
-        break;
-      case 'HiROM':
-        output.push('SLOTSIZE $10000        ; 64KB slots');
-        output.push('DEFAULTSLOT 0');
-        output.push('SLOT 0 $0000           ; Bank 0 at $0000-$FFFF');
-        break;
+    case 'LoROM':
+      output.push('SLOTSIZE $8000         ; 32KB slots');
+      output.push('DEFAULTSLOT 0');
+      output.push('SLOT 0 $8000           ; Bank 0 at $8000-$FFFF');
+      break;
+    case 'HiROM':
+      output.push('SLOTSIZE $10000        ; 64KB slots');
+      output.push('DEFAULTSLOT 0');
+      output.push('SLOT 0 $0000           ; Bank 0 at $0000-$FFFF');
+      break;
     }
   }
 
   private formatWLALine(line: DisassemblyLine): string {
     let output = '';
-    
+
     // Add label if present
     if (line.label) {
       output += `${line.label}:\n`;
     }
 
     // Format instruction with WLA-DX syntax
-    const mnemonic = this.options.uppercase ? 
-      line.instruction.mnemonic.toUpperCase() : 
+    const mnemonic = this.options.uppercase ?
+      line.instruction.mnemonic.toUpperCase() :
       line.instruction.mnemonic.toLowerCase();
-    
+
     output += `    ${mnemonic}`;
 
     // Format operand with WLA-DX specific syntax
@@ -379,24 +379,24 @@ export class WLADXFormatter extends OutputFormatter {
     // WLA-DX uses $ for hex values
     const operand = line.operand;
     const symbolName = this.getSymbolName(operand);
-    
+
     if (symbolName) {
       return symbolName;
     }
 
     // WLA-DX specific formatting
     switch (line.instruction.addressingMode) {
-      case '#': // Immediate
-        return `#$${operand.toString(16).toUpperCase().padStart(2, '0')}`;
-      case 'abs': // Absolute
-        return `$${operand.toString(16).toUpperCase().padStart(4, '0')}`;
-      case 'long': // Absolute Long
-        return `$${operand.toString(16).toUpperCase().padStart(6, '0')}`;
-      case 'zp': // Zero Page
-      case 'dp': // Direct Page
-        return `$${operand.toString(16).toUpperCase().padStart(2, '0')}`;
-      default:
-        return `$${operand.toString(16).toUpperCase()}`;
+    case '#': // Immediate
+      return `#$${operand.toString(16).toUpperCase().padStart(2, '0')}`;
+    case 'abs': // Absolute
+      return `$${operand.toString(16).toUpperCase().padStart(4, '0')}`;
+    case 'long': // Absolute Long
+      return `$${operand.toString(16).toUpperCase().padStart(6, '0')}`;
+    case 'zp': // Zero Page
+    case 'dp': // Direct Page
+      return `$${operand.toString(16).toUpperCase().padStart(2, '0')}`;
+    default:
+      return `$${operand.toString(16).toUpperCase()}`;
     }
   }
 }
@@ -412,20 +412,20 @@ export class BassFormatter extends OutputFormatter {
 
   format(lines: DisassemblyLine[]): string {
     const output: string[] = [];
-    
+
     // Add bass specific directives
     output.push(...this.generateHeader());
     output.push('; bass Assembler Configuration');
     output.push('arch 65816              ; Set 65816 architecture');
-    
+
     // Add memory mapping
     switch (this.rom.cartridgeInfo.type) {
-      case 'LoROM':
-        output.push('base $8000             ; LoROM base address');
-        break;
-      case 'HiROM':
-        output.push('base $C000             ; HiROM base address');
-        break;
+    case 'LoROM':
+      output.push('base $8000             ; LoROM base address');
+      break;
+    case 'HiROM':
+      output.push('base $C000             ; HiROM base address');
+      break;
     }
     output.push('');
 
@@ -453,17 +453,17 @@ export class BassFormatter extends OutputFormatter {
 
   private formatBassLine(line: DisassemblyLine): string {
     let output = '';
-    
+
     // Add label if present
     if (line.label) {
       output += `${line.label}:\n`;
     }
 
     // Format instruction
-    const mnemonic = this.options.uppercase ? 
-      line.instruction.mnemonic.toUpperCase() : 
+    const mnemonic = this.options.uppercase ?
+      line.instruction.mnemonic.toUpperCase() :
       line.instruction.mnemonic.toLowerCase();
-    
+
     output += `  ${mnemonic}`;
 
     // Format operand with bass syntax
@@ -487,38 +487,38 @@ export class BassFormatter extends OutputFormatter {
 
     const operand = line.operand;
     const symbolName = this.getSymbolName(operand);
-    
+
     if (symbolName) {
       return `{${symbolName}}`;  // bass uses {} for symbols
     }
 
     // bass specific formatting
     switch (line.instruction.addressingMode) {
-      case '#': // Immediate
-        return `#$${operand.toString(16).toUpperCase().padStart(2, '0')}`;
-      case 'abs': // Absolute
-        return `$${operand.toString(16).toUpperCase().padStart(4, '0')}`;
-      case 'long': // Absolute Long
-        return `$${operand.toString(16).toUpperCase().padStart(6, '0')}`;
-      default:
-        return `$${operand.toString(16).toUpperCase()}`;
+    case '#': // Immediate
+      return `#$${operand.toString(16).toUpperCase().padStart(2, '0')}`;
+    case 'abs': // Absolute
+      return `$${operand.toString(16).toUpperCase().padStart(4, '0')}`;
+    case 'long': // Absolute Long
+      return `$${operand.toString(16).toUpperCase().padStart(6, '0')}`;
+    default:
+      return `$${operand.toString(16).toUpperCase()}`;
     }
   }
 }
 
-export class OutputFormatterFactory {
-  static create(format: string, rom: SNESRom, symbols?: Map<number, SymbolTableEntry>, 
-                crossRefs?: CrossReference[], options?: OutputOptions): OutputFormatter {
+class OutputFormatterFactory {
+  static create(format: string, rom: SNESRom, symbols?: Map<number, SymbolTableEntry>,
+    crossRefs?: CrossReference[], options?: OutputOptions): OutputFormatter {
     switch (format.toLowerCase()) {
-      case 'ca65':
-        return new CA65Formatter(rom, symbols, crossRefs, options);
-      case 'wla-dx':
-      case 'wladx':
-        return new WLADXFormatter(rom, symbols, crossRefs, options);
-      case 'bass':
-        return new BassFormatter(rom, symbols, crossRefs, options);
-      default:
-        throw new Error(`Unsupported output format: ${format}`);
+    case 'ca65':
+      return new CA65Formatter(rom, symbols, crossRefs, options);
+    case 'wla-dx':
+    case 'wladx':
+      return new WLADXFormatter(rom, symbols, crossRefs, options);
+    case 'bass':
+      return new BassFormatter(rom, symbols, crossRefs, options);
+    default:
+      throw new Error(`Unsupported output format: ${format}`);
     }
   }
 

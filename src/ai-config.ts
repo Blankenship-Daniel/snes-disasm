@@ -1,12 +1,12 @@
 /**
  * AI Configuration Management
- * 
+ *
  * Centralized configuration for all GenAI features in the SNES disassembler.
  * All AI features are optional and can be disabled for users who prefer
  * traditional analysis methods.
  */
 
-export interface AIModelConfig {
+interface AIModelConfig {
   /** HuggingFace model identifier or local path */
   modelPath: string;
   /** Enable/disable this specific model */
@@ -17,19 +17,19 @@ export interface AIModelConfig {
   parameters?: Record<string, any>;
 }
 
-export interface AIFeatureConfig {
+interface AIFeatureConfig {
   /** Enable/disable all AI features globally */
   enabled: boolean;
-  
+
   /** Graphics classification using Vision Transformers */
   graphicsClassification: AIModelConfig;
-  
+
   /** Text/sequence classification using language models */
   textClassification: AIModelConfig;
-  
+
   /** Audio pattern recognition */
   audioClassification: AIModelConfig;
-  
+
   /** Intelligent naming suggestions */
   namingSuggestions: {
     enabled: boolean;
@@ -40,7 +40,7 @@ export interface AIFeatureConfig {
     /** Custom naming patterns */
     customPatterns?: string[];
   };
-  
+
   /** Automated documentation generation */
   documentationGeneration: {
     enabled: boolean;
@@ -53,7 +53,7 @@ export interface AIFeatureConfig {
     /** Include AI confidence scores in docs */
     includeConfidence: boolean;
   };
-  
+
   /** Performance and resource settings */
   performance: {
     /** Maximum memory usage for AI models (MB) */
@@ -65,7 +65,7 @@ export interface AIFeatureConfig {
     /** Timeout for AI operations (seconds) */
     timeoutSeconds: number;
   };
-  
+
   /** Fallback behavior when AI is unavailable */
   fallback: {
     /** Use heuristic analysis when AI fails */
@@ -83,7 +83,7 @@ export interface AIFeatureConfig {
  */
 export const DEFAULT_AI_CONFIG: AIFeatureConfig = {
   enabled: false, // AI features are opt-in
-  
+
   graphicsClassification: {
     modelPath: 'Xenova/vit-base-patch16-224',
     enabled: false,
@@ -93,7 +93,7 @@ export const DEFAULT_AI_CONFIG: AIFeatureConfig = {
       quantized: true // Use smaller quantized models by default
     }
   },
-  
+
   textClassification: {
     modelPath: 'Xenova/distilbert-base-uncased-finetuned-sst-2-english',
     enabled: false,
@@ -103,7 +103,7 @@ export const DEFAULT_AI_CONFIG: AIFeatureConfig = {
       quantized: true
     }
   },
-  
+
   audioClassification: {
     modelPath: 'Xenova/wav2vec2-base',
     enabled: false,
@@ -113,7 +113,7 @@ export const DEFAULT_AI_CONFIG: AIFeatureConfig = {
       quantized: true
     }
   },
-  
+
   namingSuggestions: {
     enabled: false,
     useContextualNames: true,
@@ -125,7 +125,7 @@ export const DEFAULT_AI_CONFIG: AIFeatureConfig = {
       '{{game}}_{{asset_type}}_{{index}}'
     ]
   },
-  
+
   documentationGeneration: {
     enabled: false,
     generateComments: true,
@@ -133,14 +133,14 @@ export const DEFAULT_AI_CONFIG: AIFeatureConfig = {
     style: 'technical',
     includeConfidence: false
   },
-  
+
   performance: {
     maxMemoryMB: 512,
     enableCaching: true,
     maxConcurrentJobs: 2,
     timeoutSeconds: 30
   },
-  
+
   fallback: {
     useHeuristics: true,
     showWarnings: true,
@@ -155,12 +155,12 @@ export const DEFAULT_AI_CONFIG: AIFeatureConfig = {
 export class AIConfigManager {
   private config: AIFeatureConfig;
   private configPath: string;
-  
+
   constructor(configPath: string = './ai-config.json') {
     this.configPath = configPath;
     this.config = { ...DEFAULT_AI_CONFIG };
   }
-  
+
   /**
    * Load configuration from file or use defaults
    */
@@ -169,22 +169,22 @@ export class AIConfigManager {
       const fs = await import('fs/promises');
       const configData = await fs.readFile(this.configPath, 'utf-8');
       const userConfig = JSON.parse(configData);
-      
+
       // Merge with defaults, allowing partial configuration
       this.config = this.mergeWithDefaults(userConfig);
-      
+
       console.log('✅ AI configuration loaded successfully');
       if (!this.config.enabled) {
         console.log('ℹ️  AI features are disabled. Enable them in ai-config.json');
       }
-      
+
       return this.config;
     } catch (error) {
       console.log('ℹ️  No AI configuration found, using defaults (AI disabled)');
       return this.config;
     }
   }
-  
+
   /**
    * Save current configuration to file
    */
@@ -192,8 +192,8 @@ export class AIConfigManager {
     try {
       const fs = await import('fs/promises');
       await fs.writeFile(
-        this.configPath, 
-        JSON.stringify(this.config, null, 2), 
+        this.configPath,
+        JSON.stringify(this.config, null, 2),
         'utf-8'
       );
       console.log('✅ AI configuration saved');
@@ -201,42 +201,42 @@ export class AIConfigManager {
       console.error('❌ Failed to save AI configuration:', error);
     }
   }
-  
+
   /**
    * Get current configuration
    */
   getConfig(): AIFeatureConfig {
     return { ...this.config };
   }
-  
+
   /**
    * Update configuration
    */
   updateConfig(updates: Partial<AIFeatureConfig>): void {
     this.config = { ...this.config, ...updates };
   }
-  
+
   /**
    * Check if AI features are enabled globally
    */
   isAIEnabled(): boolean {
     return this.config.enabled;
   }
-  
+
   /**
    * Check if a specific AI feature is enabled
    */
   isFeatureEnabled(feature: keyof Omit<AIFeatureConfig, 'enabled' | 'performance' | 'fallback'>): boolean {
     if (!this.config.enabled) return false;
-    
+
     const featureConfig = this.config[feature];
     if (typeof featureConfig === 'object' && 'enabled' in featureConfig) {
       return featureConfig.enabled;
     }
-    
+
     return false;
   }
-  
+
   /**
    * Get model configuration for a specific feature
    */
@@ -244,7 +244,7 @@ export class AIConfigManager {
     if (!this.isFeatureEnabled(feature)) return null;
     return this.config[feature];
   }
-  
+
   /**
    * Create a sample configuration file with all options documented
    */
@@ -252,26 +252,26 @@ export class AIConfigManager {
     const sampleConfig = {
       ...DEFAULT_AI_CONFIG,
       enabled: true, // Enable AI in sample
-      
+
       // Enable some features for demonstration
       graphicsClassification: {
         ...DEFAULT_AI_CONFIG.graphicsClassification,
         enabled: true
       },
-      
+
       namingSuggestions: {
         ...DEFAULT_AI_CONFIG.namingSuggestions,
         enabled: true
       }
     };
-    
+
     const configWithComments = {
-      "_comment": "SNES Disassembler AI Configuration",
-      "_description": "Enable AI-powered analysis features. All features are optional.",
-      "_warning": "AI features require internet connection and additional resources",
+      '_comment': 'SNES Disassembler AI Configuration',
+      '_description': 'Enable AI-powered analysis features. All features are optional.',
+      '_warning': 'AI features require internet connection and additional resources',
       ...sampleConfig
     };
-    
+
     try {
       const fs = await import('fs/promises');
       await fs.writeFile(
@@ -284,40 +284,40 @@ export class AIConfigManager {
       console.error('❌ Failed to create sample configuration:', error);
     }
   }
-  
+
   private mergeWithDefaults(userConfig: any): AIFeatureConfig {
     // Deep merge user config with defaults
     const merged = { ...DEFAULT_AI_CONFIG };
-    
+
     // Safely merge each section
     if (userConfig.enabled !== undefined) {
       merged.enabled = userConfig.enabled;
     }
-    
+
     // Merge model configurations
     const modelKeys = ['graphicsClassification', 'textClassification', 'audioClassification'] as const;
     modelKeys.forEach(key => {
       if (userConfig[key]) {
         const defaultValue = merged[key] as Record<string, any>;
-        merged[key] = { 
-          ...defaultValue, 
-          ...userConfig[key] 
+        merged[key] = {
+          ...defaultValue,
+          ...userConfig[key]
         } as any;
       }
     });
-    
+
     // Merge feature configurations
     const featureKeys = ['namingSuggestions', 'documentationGeneration', 'performance', 'fallback'] as const;
     featureKeys.forEach(key => {
       if (userConfig[key]) {
         const defaultValue = merged[key] as Record<string, any>;
-        merged[key] = { 
-          ...defaultValue, 
-          ...userConfig[key] 
+        merged[key] = {
+          ...defaultValue,
+          ...userConfig[key]
         } as any;
       }
     });
-    
+
     return merged;
   }
 }
@@ -325,7 +325,7 @@ export class AIConfigManager {
 /**
  * Environment detection for AI features
  */
-export class AIEnvironmentChecker {
+class AIEnvironmentChecker {
   static async checkCompatibility(): Promise<{
     compatible: boolean;
     issues: string[];
@@ -333,23 +333,23 @@ export class AIEnvironmentChecker {
   }> {
     const issues: string[] = [];
     const recommendations: string[] = [];
-    
+
     // Check Node.js version
     const nodeVersion = process.version;
     const majorVersion = parseInt(nodeVersion.slice(1).split('.')[0]);
-    
+
     if (majorVersion < 16) {
       issues.push(`Node.js ${nodeVersion} detected. AI features require Node.js 16+`);
       recommendations.push('Upgrade to Node.js 16 or higher');
     }
-    
+
     // Check available memory
     const totalMemory = process.memoryUsage().heapTotal / 1024 / 1024;
     if (totalMemory < 256) {
       issues.push('Low memory detected. AI models may require more RAM');
       recommendations.push('Ensure at least 512MB RAM available for AI features');
     }
-    
+
     // Check internet connectivity (for model downloads)
     try {
       const https = await import('https');
@@ -363,7 +363,7 @@ export class AIEnvironmentChecker {
       issues.push('Cannot reach HuggingFace servers. AI models may not download');
       recommendations.push('Check internet connection or use offline models');
     }
-    
+
     // Check for required packages
     try {
       require.resolve('@huggingface/transformers');
@@ -371,33 +371,33 @@ export class AIEnvironmentChecker {
       issues.push('HuggingFace Transformers not installed');
       recommendations.push('Run: npm install @huggingface/transformers');
     }
-    
+
     const compatible = issues.length === 0;
-    
+
     return {
       compatible,
       issues,
       recommendations
     };
   }
-  
+
   static async printCompatibilityReport(): Promise<void> {
     console.log('🔍 Checking AI feature compatibility...\n');
-    
+
     const report = await this.checkCompatibility();
-    
+
     if (report.compatible) {
       console.log('✅ System is compatible with AI features');
     } else {
       console.log('⚠️  Compatibility issues found:');
       report.issues.forEach(issue => console.log(`   • ${issue}`));
-      
+
       if (report.recommendations.length > 0) {
         console.log('\n💡 Recommendations:');
         report.recommendations.forEach(rec => console.log(`   • ${rec}`));
       }
     }
-    
+
     console.log('\n📝 To enable AI features:');
     console.log('   1. Copy ai-config.sample.json to ai-config.json');
     console.log('   2. Set "enabled": true in the configuration');
