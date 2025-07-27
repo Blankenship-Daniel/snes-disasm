@@ -79,4 +79,6 @@ export interface DisassemblerOptions {
   timingContext?: TimingContext;
   enableValidation?: boolean; // Enable SNES reference validation (default: true)
   enhanceComments?: boolean; // Generate enhanced comments using reference data (default: true)
+  validationLogLevel?: 'minimal' | 'normal' | 'verbose'; // Control validation logging verbosity (default: 'normal')
+  cache?: import('./analysis-cache').ROMAnalysisCache; // Optional ROM analysis cache for performance
 }

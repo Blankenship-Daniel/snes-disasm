@@ -11,9 +11,12 @@ const validation_engine_1 = require("./validation-engine");
 const snes_reference_tables_1 = require("./snes-reference-tables");
 const spc_exporter_1 = require("./spc-exporter");
 const spc_state_extractor_1 = require("./spc-state-extractor");
+const analysis_cache_1 = require("./analysis-cache");
 const logger_1 = require("./utils/logger");
 class SNESDisassembler {
     constructor(romPath, options = {}) {
+        this.lastAnalysisHash = '';
+        this.isAnalyzing = false;
         this.rom = rom_parser_1.RomParser.parse(romPath);
         // Initialize logger for this disassembler instance
         this.logger = (0, logger_1.createLogger)('SNESDisassembler');
@@ -26,18 +29,30 @@ class SNESDisassembler {
         this.comments = options.comments || new Map();
         this.analysisEngine = new analysis_engine_1.AnalysisEngine();
         this.symbolManager = new symbol_manager_1.SymbolManager();
-        this.validationEngine = new validation_engine_1.SNESValidationEngine();
+        this.validationEngine = new validation_engine_1.SNESValidationEngine(options.validationLogLevel || 'normal');
         this.enableValidation = options.enableValidation !== false; // Default to true
         this.enhanceComments = options.enhanceComments !== false; // Default to true
+        this.cache = options.cache || analysis_cache_1.globalROMCache;
+        // Cache ROM info for reuse
+        this.cache.setROMInfo(this.rom);
     }
+    // Returns ROM information without using analysis cache to prevent circular dependencies
+    // This method is called during cache key generation and initialization phases
     getRomInfo() {
         return this.rom;
     }
     disassemble(startAddress, endAddress) {
-        const lines = [];
         // Default to reset vector if no start address provided
         let currentAddress = startAddress || this.rom.header.nativeVectors.reset;
         const finalAddress = endAddress || (currentAddress + 0x1000); // Default 4KB
+        // Check cache for this disassembly range first
+        const cacheParams = { start: currentAddress, end: finalAddress };
+        const cachedLines = this.cache.getDisassembly(this.rom, cacheParams);
+        if (cachedLines) {
+            this.logger.debug('Using cached disassembly', cacheParams);
+            return cachedLines;
+        }
+        const lines = [];
         // Convert to ROM offset
         let romOffset;
         try {
@@ -74,6 +89,10 @@ class SNESDisassembler {
         // Validate the disassembly if enabled
         if (this.enableValidation && lines.length > 0) {
             this.validateDisassembly(lines);
+        }
+        // Cache the disassembly results for future use
+        if (lines.length > 0) {
+            this.cache.setDisassembly(this.rom, lines, cacheParams);
         }
         return lines;
     }
@@ -241,11 +260,20 @@ class SNESDisassembler {
     exportSPC(outputPath) {
         // Log SPC audio extraction
         this.logger.info('🎵 Extracting SPC audio state from ROM...');
-        // Perform full disassembly and analysis
-        const lines = this.disassemble();
-        this.analyze();
-        // Initialize SPC state extractor and extract audio state
-        const extractedState = spc_state_extractor_1.SPCStateExtractor.extractAudioState(lines, this.rom.data, this.rom.cartridgeInfo);
+        // Check cache for audio state first to avoid redundant extraction
+        let extractedState = this.cache.getAudioState(this.rom);
+        if (!extractedState) {
+            // Perform full disassembly and analysis only if not cached
+            const lines = this.disassemble();
+            this.analyze();
+            // Initialize SPC state extractor and extract audio state
+            extractedState = spc_state_extractor_1.SPCStateExtractor.extractAudioState(lines, this.rom.data, this.rom.cartridgeInfo);
+            // Cache the audio state for future use
+            this.cache.setAudioState(this.rom, extractedState);
+        }
+        else {
+            this.logger.debug('Using cached audio state');
+        }
         // Create SPC export metadata using extracted metadata
         const spcMetadata = {
             songTitle: extractedState.metadata.gameTitle || 'Unknown Game',
@@ -276,36 +304,85 @@ class SNESDisassembler {
     }
     // Enhanced analysis using the analysis engine
     analyze() {
-        // Perform full disassembly first
-        const lines = this.disassemble();
-        // Extract vector addresses from ROM header
-        const vectorAddresses = [
-            this.rom.header.nativeVectors.reset,
-            this.rom.header.nativeVectors.nmi,
-            this.rom.header.nativeVectors.irq,
-            this.rom.header.nativeVectors.cop,
-            this.rom.header.nativeVectors.brk,
-            this.rom.header.nativeVectors.abort,
-            this.rom.header.emulationVectors.reset,
-            this.rom.header.emulationVectors.nmi,
-            this.rom.header.emulationVectors.irq,
-            this.rom.header.emulationVectors.cop,
-            this.rom.header.emulationVectors.brk,
-            this.rom.header.emulationVectors.abort
-        ].filter(addr => addr > 0); // Filter out invalid addresses
-        // Run comprehensive analysis
-        this.analysisEngine.analyze(lines, this.rom.cartridgeInfo, vectorAddresses);
-        // Extract results
-        const functions = Array.from(this.analysisEngine.getFunctions().keys());
-        const data = Array.from(this.analysisEngine.getDataStructures().keys());
-        // Update labels with generated symbols
-        const symbols = this.analysisEngine.getSymbols();
-        for (const [address, symbol] of symbols) {
-            if (!this.labels.has(address)) {
-                this.labels.set(address, symbol.name);
-            }
+        // Prevent recursion by returning early if already analyzing
+        if (this.isAnalyzing) {
+            this.logger.warn('Already analyzing, skipping to prevent recursion.');
+            return { functions: [], data: [] };
         }
-        return { functions, data };
+        this.isAnalyzing = true;
+        try {
+            // Generate hash of current analysis context to detect changes
+            const analysisContext = {
+                romSize: this.rom.data.length,
+                cartridgeType: this.rom.cartridgeInfo.type,
+                labels: Array.from(this.labels.entries()),
+                comments: Array.from(this.comments.entries())
+            };
+            const contextHash = require('crypto').createHash('md5').update(JSON.stringify(analysisContext)).digest('hex');
+            // Skip redundant analysis if context hasn't changed
+            if (this.lastAnalysisHash === contextHash) {
+                this.logger.debug('Skipping redundant analysis - context unchanged');
+                const functions = Array.from(this.analysisEngine.getFunctions().keys());
+                const data = Array.from(this.analysisEngine.getDataStructures().keys());
+                return { functions, data };
+            }
+            // Check cache for function analysis results
+            const cachedFunctions = this.cache.getFunctions(this.rom, analysisContext);
+            if (cachedFunctions) {
+                this.logger.debug('Using cached function analysis');
+                this.lastAnalysisHash = contextHash;
+                // Restore cached symbols to labels
+                const symbols = this.analysisEngine.getSymbols();
+                for (const [address, symbol] of symbols) {
+                    if (!this.labels.has(address)) {
+                        this.labels.set(address, symbol.name);
+                    }
+                }
+                return cachedFunctions;
+            }
+            // Perform full disassembly first (this checks its own cache)
+            const lines = this.disassemble();
+            // Extract vector addresses from ROM header (cache these too)
+            let vectorAddresses = this.cache.getVectors(this.rom);
+            if (!vectorAddresses) {
+                vectorAddresses = [
+                    this.rom.header.nativeVectors.reset,
+                    this.rom.header.nativeVectors.nmi,
+                    this.rom.header.nativeVectors.irq,
+                    this.rom.header.nativeVectors.cop,
+                    this.rom.header.nativeVectors.brk,
+                    this.rom.header.nativeVectors.abort,
+                    this.rom.header.emulationVectors.reset,
+                    this.rom.header.emulationVectors.nmi,
+                    this.rom.header.emulationVectors.irq,
+                    this.rom.header.emulationVectors.cop,
+                    this.rom.header.emulationVectors.brk,
+                    this.rom.header.emulationVectors.abort
+                ].filter(addr => addr > 0); // Filter out invalid addresses
+                this.cache.setVectors(this.rom, vectorAddresses);
+            }
+            // Run comprehensive analysis
+            this.analysisEngine.analyze(lines, this.rom.cartridgeInfo, vectorAddresses);
+            // Extract results
+            const functions = Array.from(this.analysisEngine.getFunctions().keys());
+            const data = Array.from(this.analysisEngine.getDataStructures().keys());
+            const result = { functions, data };
+            // Update labels with generated symbols
+            const symbols = this.analysisEngine.getSymbols();
+            for (const [address, symbol] of symbols) {
+                if (!this.labels.has(address)) {
+                    this.labels.set(address, symbol.name);
+                }
+            }
+            // Cache the analysis results
+            this.cache.setFunctions(this.rom, result, analysisContext);
+            this.lastAnalysisHash = contextHash;
+            return result;
+        }
+        finally {
+            // Always reset the analyzing flag
+            this.isAnalyzing = false;
+        }
     }
     // Get analysis results
     getAnalysisResults() {
@@ -555,19 +632,25 @@ class SNESDisassembler {
      * Validate disassembly using SNES reference tables
      */
     validateDisassembly(lines) {
+        // Check cache for validation results first
+        const validationParams = {
+            lineCount: lines.length,
+            addressRange: lines.length > 0 ? {
+                start: lines[0].address,
+                end: lines[lines.length - 1].address
+            } : null
+        };
+        const cachedResult = this.cache.getValidationResult(this.rom, validationParams);
+        if (cachedResult) {
+            this.logger.debug('Using cached validation result');
+            return cachedResult;
+        }
         this.logger.info('🔍 Validating disassembly against SNES reference tables...');
         const result = this.validationEngine.validateDisassembly(lines);
-        if (result.discrepancies.length > 0) {
-            this.logger.warn(`⚠️  Found ${result.discrepancies.length} validation issues:`);
-            const errors = result.discrepancies.filter(d => d.severity === 'error');
-            const warnings = result.discrepancies.filter(d => d.severity === 'warning');
-            if (errors.length > 0) {
-                this.logger.error(`${errors.length} errors found.`);
-            }
-            if (warnings.length > 0) {
-                this.logger.warn(`${warnings.length} warnings found.`);
-            }
-        }
+        // Cache the validation result
+        this.cache.setValidationResult(this.rom, result, validationParams);
+        // Log detailed validation breakdown instead of just total counts
+        this.logValidationBreakdown(result);
         this.logger.info(`✅ Validation complete with ${result.accuracy.toFixed(1)}% accuracy.`);
         return result;
     }
@@ -616,6 +699,86 @@ class SNESDisassembler {
         return null;
     }
     /**
+     * Log detailed validation breakdown with examples and enhancements
+     */
+    logValidationBreakdown(result) {
+        if (result.discrepancies.length === 0) {
+            this.logger.info('✅ No validation issues found.');
+            return;
+        }
+        // Group discrepancies by type
+        const discrepanciesByType = result.discrepancies.reduce((acc, discrepancy) => {
+            if (!acc[discrepancy.type]) {
+                acc[discrepancy.type] = [];
+            }
+            acc[discrepancy.type].push(discrepancy);
+            return acc;
+        }, {});
+        // Log summary counts by type
+        const typeCounts = Object.entries(discrepanciesByType).map(([type, discs]) => {
+            const errors = discs.filter(d => d.severity === 'error').length;
+            const warnings = discs.filter(d => d.severity === 'warning').length;
+            const infos = discs.filter(d => d.severity === 'info').length;
+            return `${type}: ${errors} errors, ${warnings} warnings, ${infos} info`;
+        });
+        this.logger.info(`⚠️  Validation issues breakdown (${result.discrepancies.length} total):`);
+        for (const typeCount of typeCounts) {
+            this.logger.info(`  - ${typeCount}`);
+        }
+        // Log examples of first 3 errors of each type with debug level
+        for (const [type, discrepancies] of Object.entries(discrepanciesByType)) {
+            const examples = discrepancies.slice(0, 3);
+            this.logger.debug(`${type.toUpperCase()} examples:`);
+            for (const [index, example] of examples.entries()) {
+                const addressStr = `$${example.address.toString(16).toUpperCase().padStart(6, '0')}`;
+                this.logger.debug(`  ${index + 1}. ${addressStr}: [${example.severity.toUpperCase()}] ${example.message}`);
+                // Add additional context if available
+                if (example.expected && example.actual) {
+                    this.logger.debug(`     Expected: ${JSON.stringify(example.expected)}`);
+                    this.logger.debug(`     Actual: ${JSON.stringify(example.actual)}`);
+                }
+            }
+            if (discrepancies.length > 3) {
+                this.logger.debug(`     ... and ${discrepancies.length - 3} more ${type} issues`);
+            }
+        }
+        // Log summary of enhancements suggested
+        if (result.enhancements.length > 0) {
+            const enhancementsByType = result.enhancements.reduce((acc, enhancement) => {
+                if (!acc[enhancement.type]) {
+                    acc[enhancement.type] = 0;
+                }
+                acc[enhancement.type]++;
+                return acc;
+            }, {});
+            const enhancementSummary = Object.entries(enhancementsByType)
+                .map(([type, count]) => `${count} ${type}`)
+                .join(', ');
+            this.logger.info(`💡 Enhancements available: ${enhancementSummary} (${result.enhancements.length} total)`);
+            // Log high priority enhancement examples
+            const highPriorityEnhancements = result.enhancements
+                .filter(e => e.priority === 'high')
+                .slice(0, 3);
+            if (highPriorityEnhancements.length > 0) {
+                this.logger.debug('High priority enhancement examples:');
+                for (const [index, enhancement] of highPriorityEnhancements.entries()) {
+                    const addressStr = `$${enhancement.address.toString(16).toUpperCase().padStart(6, '0')}`;
+                    this.logger.debug(`  ${index + 1}. ${addressStr}: ${enhancement.content}`);
+                }
+            }
+        }
+        // Log recommended improvements if available
+        if (result.summary.recommendedImprovements.length > 0) {
+            this.logger.info('🔧 Recommended improvements:');
+            for (const improvement of result.summary.recommendedImprovements.slice(0, 3)) {
+                this.logger.info(`  - ${improvement}`);
+            }
+            if (result.summary.recommendedImprovements.length > 3) {
+                this.logger.info(`  ... and ${result.summary.recommendedImprovements.length - 3} more recommendations`);
+            }
+        }
+    }
+    /**
      * Get validation results for the last disassembly
      */
     getValidationResults() {
@@ -624,10 +787,21 @@ class SNESDisassembler {
             this.logger.warn('Validation is disabled. Enable it in DisassemblerOptions to get validation results.');
             return null;
         }
-        // For now, we'll need to re-run validation on the current disassembly
-        // In a production version, we'd cache the last result
-        const lines = this.disassemble();
-        return this.validationEngine.validateDisassembly(lines);
+        // Use cached validation result if available, otherwise run validation
+        const lines = this.disassemble(); // This will use cache if available
+        const validationParams = {
+            lineCount: lines.length,
+            addressRange: lines.length > 0 ? {
+                start: lines[0].address,
+                end: lines[lines.length - 1].address
+            } : null
+        };
+        let result = this.cache.getValidationResult(this.rom, validationParams);
+        if (!result) {
+            result = this.validationEngine.validateDisassembly(lines);
+            this.cache.setValidationResult(this.rom, result, validationParams);
+        }
+        return result;
     }
     /**
      * Generate a validation report for the current disassembly

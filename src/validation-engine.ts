@@ -18,6 +18,7 @@ import {
 } from './snes-reference-tables';
 
 import { DisassemblyLine } from './types';
+import { createLogger, Logger } from './utils/logger';
 
 // =====================================================================
 // VALIDATION RESULTS
@@ -66,14 +67,76 @@ export class SNESValidationEngine {
   private registerStats = new Map<number, { reads: number; writes: number }>();
   private validationResults: ValidationDiscrepancy[] = [];
   private enhancements: ValidationEnhancement[] = [];
+  private logger: Logger;
+  private validationCache = new Map<string, ValidationResult>();
+  private logLevel: 'minimal' | 'normal' | 'verbose';
+  private errorFrequency = new Map<string, number>();
+  
+  constructor(logLevel: 'minimal' | 'normal' | 'verbose' = 'normal') {
+    this.logger = createLogger('SNESValidationEngine');
+    this.logLevel = logLevel;
+  }
+
+  /**
+   * Generate cache key for validation request
+   */
+  private generateValidationCacheKey(lines: DisassemblyLine[]): string {
+    // Create a hash based on instruction content for caching
+    const content = lines.map(line => `${line.address}:${line.instruction.opcode}:${line.operand || ''}`).join('|');
+    return require('crypto').createHash('md5').update(content).digest('hex').substring(0, 16);
+  }
+
+  /**
+   * Generate error key based on type and specific details for frequency tracking
+   */
+  private generateErrorKey(discrepancy: ValidationDiscrepancy): string {
+    const { type, severity, message } = discrepancy;
+    
+    // Create a normalized key for similar errors
+    let normalizedMessage = message;
+    
+    // Normalize common patterns to group similar errors
+    if (type === 'instruction') {
+      // Group instruction errors by the general error type rather than specific opcodes
+      normalizedMessage = message
+        .replace(/\$[0-9A-Fa-f]+/g, '$XX') // Replace hex addresses with placeholder
+        .replace(/\b\d+\b/g, 'N'); // Replace numbers with placeholder
+    } else if (type === 'register') {
+      // Group register errors by register type and operation
+      normalizedMessage = message
+        .replace(/\$[0-9A-Fa-f]+/g, '$XXXX') // Replace hex addresses with placeholder
+        .replace(/\bat address \$[0-9A-Fa-f]+/g, 'at address $XXXX');
+    } else if (type === 'addressing') {
+      // Group addressing mode errors by the specific mode mismatch pattern
+      normalizedMessage = message; // Keep addressing mode errors as-is for now
+    }
+    
+    return `${type}:${severity}:${normalizedMessage}`;
+  }
 
   /**
    * Validate a complete disassembly against SNES reference data
    */
   validateDisassembly(lines: DisassemblyLine[]): ValidationResult {
+    // Check cache first for this exact validation request
+    const cacheKey = this.generateValidationCacheKey(lines);
+    const cachedResult = this.validationCache.get(cacheKey);
+    
+    if (cachedResult) {
+      if (this.logLevel === 'verbose') {
+        this.logger.debug('Using cached validation result', { 
+          lines: lines.length, 
+          cacheKey: cacheKey.substring(0, 8) + '...' 
+        });
+      }
+      return cachedResult;
+    }
+    
     this.reset();
 
-    console.log('🔍 Starting SNES reference validation...');
+    if (this.logLevel !== 'minimal') {
+      this.logger.info('🔍 Starting SNES reference validation...', { lines: lines.length });
+    }
 
     // Validate each instruction
     for (const line of lines) {
@@ -82,16 +145,42 @@ export class SNESValidationEngine {
 
     // Generate summary
     const summary = this.generateSummary(lines);
+    
+    // Log based on verbosity level
+    if (this.logLevel === 'verbose') {
+      this.logValidationSummary();
+    } else if (this.logLevel === 'normal') {
+      this.logNormalSummary();
+    }
+    // For minimal, only log final summary
 
-    console.log(`✅ Validation complete: ${summary.accuracyScore.toFixed(1)}% accuracy`);
+    if (this.logLevel !== 'minimal') {
+      this.logger.info(`✅ Validation complete: ${summary.accuracyScore.toFixed(1)}% accuracy`);
+    } else {
+      // Minimal: Only log final summary with error counts
+      this.logMinimalSummary(summary);
+    }
 
-    return {
+    const result: ValidationResult = {
       isValid: summary.accuracyScore >= 90.0,
       accuracy: summary.accuracyScore,
       discrepancies: this.validationResults,
       enhancements: this.enhancements,
       summary
     };
+    
+    // Cache the result for future use
+    this.validationCache.set(cacheKey, result);
+    
+    // Limit cache size to prevent memory issues
+    if (this.validationCache.size > 50) {
+      const firstKey = this.validationCache.keys().next().value;
+      if (firstKey) {
+        this.validationCache.delete(firstKey);
+      }
+    }
+    
+    return result;
   }
 
   /**
@@ -110,13 +199,37 @@ export class SNESValidationEngine {
     const validation = validateInstruction(opcode, mnemonic, line.bytes?.length);
 
     if (!validation.isValid) {
-      this.validationResults.push({
-        type: 'instruction',
-        severity: 'error',
+      // Add debug logging for instruction validation failures
+      if (this.logLevel === 'verbose') {
+        this.logger.debug('Instruction validation failed', {
+          address: `$${line.address.toString(16).toUpperCase().padStart(6, '0')}`,
+          opcode: `$${opcode.toString(16).toUpperCase().padStart(2, '0')}`,
+          actualMnemonic: mnemonic,
+          expectedMnemonic: validation.reference?.mnemonic || 'UNKNOWN',
+          actualByteLength: line.bytes?.length || 0,
+          expectedByteLength: validation.reference?.bytes || 0,
+          discrepancies: validation.discrepancies
+        });
+      }
+      
+      // Log individual failures only in verbose mode
+      if (this.logLevel === 'verbose') {
+        this.logger.warn(`Invalid instruction at $${line.address.toString(16).toUpperCase().padStart(6, '0')}: ${validation.discrepancies.join(', ')}`);
+      }
+      
+      const discrepancy = {
+        type: 'instruction' as const,
+        severity: 'error' as const,
         message: validation.discrepancies.join(', '),
         address: line.address,
         actual: { opcode, mnemonic, bytes: line.bytes?.length }
-      });
+      };
+      
+      this.validationResults.push(discrepancy);
+      
+      // Track error frequency
+      const errorKey = this.generateErrorKey(discrepancy);
+      this.errorFrequency.set(errorKey, (this.errorFrequency.get(errorKey) || 0) + 1);
       return;
     }
 
@@ -124,15 +237,32 @@ export class SNESValidationEngine {
 
     // Check addressing mode consistency
     if (addressingMode && reference.addressingMode !== addressingMode) {
-      this.validationResults.push({
-        type: 'addressing',
-        severity: 'warning',
+      // Add debug logging for addressing mode mismatches
+      this.logger.debug('Addressing mode mismatch detected', {
+        address: `$${line.address.toString(16).toUpperCase().padStart(6, '0')}`,
+        opcode: `$${opcode.toString(16).toUpperCase().padStart(2, '0')}`,
+        mnemonic: mnemonic,
+        expectedMode: reference.addressingMode,
+        actualMode: addressingMode
+      });
+      
+      this.logger.warn(`Addressing mode mismatch at $${line.address.toString(16).toUpperCase().padStart(6, '0')}: expected ${reference.addressingMode}, got ${addressingMode}`);
+      
+      const discrepancy = {
+        type: 'addressing' as const,
+        severity: 'warning' as const,
         message: `Addressing mode mismatch: expected ${reference.addressingMode}, got ${addressingMode}`,
         address: line.address,
         expected: reference.addressingMode,
         actual: addressingMode,
         reference
-      });
+      };
+      
+      this.validationResults.push(discrepancy);
+      
+      // Track error frequency
+      const errorKey = this.generateErrorKey(discrepancy);
+      this.errorFrequency.set(errorKey, (this.errorFrequency.get(errorKey) || 0) + 1);
     }
 
     // Generate enhanced instruction comment
@@ -172,25 +302,61 @@ export class SNESValidationEngine {
     const validation = validateRegister(registerAddr, operation);
 
     if (!validation.isValid) {
-      this.validationResults.push({
-        type: 'register',
-        severity: 'error',
+      // Add debug logging for register validation failures
+      this.logger.debug('Register validation failed', {
+        address: `$${address.toString(16).toUpperCase().padStart(6, '0')}`,
+        registerAddress: `$${registerAddr.toString(16).toUpperCase().padStart(4, '0')}`,
+        operationType: operation,
+        mnemonic: mnemonic,
+        violations: validation.warnings,
+        reference: validation.reference
+      });
+      
+      this.logger.warn(`Invalid register access at $${address.toString(16).toUpperCase().padStart(6, '0')}: ${operation} operation on register $${registerAddr.toString(16).toUpperCase().padStart(4, '0')} - ${validation.warnings.join(', ')}`);
+      
+      const discrepancy = {
+        type: 'register' as const,
+        severity: 'error' as const,
         message: validation.warnings.join(', '),
         address,
         actual: { register: registerAddr, operation }
-      });
+      };
+      
+      this.validationResults.push(discrepancy);
+      
+      // Track error frequency
+      const errorKey = this.generateErrorKey(discrepancy);
+      this.errorFrequency.set(errorKey, (this.errorFrequency.get(errorKey) || 0) + 1);
       return;
     }
 
     // Add warnings for access violations
     if (validation.warnings.length > 0) {
-      this.validationResults.push({
-        type: 'register',
-        severity: 'warning',
+      // Add debug logging for register access warnings
+      this.logger.debug('Register access warning', {
+        address: `$${address.toString(16).toUpperCase().padStart(6, '0')}`,
+        registerAddress: `$${registerAddr.toString(16).toUpperCase().padStart(4, '0')}`,
+        operationType: operation,
+        mnemonic: mnemonic,
+        warnings: validation.warnings,
+        reference: validation.reference
+      });
+      
+      this.logger.warn(`Register access warning at $${address.toString(16).toUpperCase().padStart(6, '0')}: ${operation} operation on register $${registerAddr.toString(16).toUpperCase().padStart(4, '0')} - ${validation.warnings.join(', ')}`);
+      
+      const discrepancy = {
+        type: 'register' as const,
+        severity: 'warning' as const,
         message: validation.warnings.join(', '),
         address,
         reference: validation.reference
-      });
+      };
+      
+      this.validationResults.push(discrepancy);
+      
+      // Track error frequency
+      const errorKey = this.generateErrorKey(discrepancy);
+      this.errorFrequency.set(errorKey, (this.errorFrequency.get(errorKey) || 0) + 1);
     }
 
     // Generate enhanced register comment
@@ -221,13 +387,15 @@ export class SNESValidationEngine {
    */
   private generateSummary(lines: DisassemblyLine[]): ValidationSummary {
     const totalInstructions = lines.filter(line => line.instruction).length;
-    const validatedInstructions = totalInstructions - this.validationResults.filter(r => r.type === 'instruction' && r.severity === 'error').length;
+    const instructionErrors = this.validationResults.filter(r => r.type === 'instruction').length;
+    const registerErrors = this.validationResults.filter(r => r.type === 'register').length;
+    const addressingErrors = this.validationResults.filter(r => r.type === 'addressing').length;
 
+    const validatedInstructions = totalInstructions - instructionErrors;
     const totalRegisters = this.registerStats.size;
-    const validatedRegisters = totalRegisters - this.validationResults.filter(r => r.type === 'register' && r.severity === 'error').length;
+    const validatedRegisters = totalRegisters - registerErrors;
 
     const accuracyScore = totalInstructions > 0 ? (validatedInstructions / totalInstructions) * 100 : 0;
-
     const recommendedImprovements = this.generateRecommendations();
 
     return {
@@ -238,6 +406,94 @@ export class SNESValidationEngine {
       accuracyScore,
       recommendedImprovements
     };
+  }
+
+  /**
+   * Log detailed validation summary (verbose mode)
+   */
+  private logValidationSummary(): void {
+    const errorCategories = {
+      instruction: this.validationResults.filter(r => r.type === 'instruction').length,
+      register: this.validationResults.filter(r => r.type === 'register').length,
+      addressing: this.validationResults.filter(r => r.type === 'addressing').length
+    };
+    
+    this.logger.info('Validation Error Summary:', errorCategories);
+
+    // Use the new getMostCommonErrors method for better insights
+    const topCommonErrors = this.getMostCommonErrors(5);
+    if (topCommonErrors.length > 0) {
+      this.logger.info('Top 5 Common Error Patterns:', topCommonErrors.map(([key, count]) => {
+        // Extract readable information from the error key
+        const [type, severity, message] = key.split(':', 3);
+        return {
+          type,
+          severity,
+          pattern: message,
+          count
+        };
+      }));
+    }
+
+    const addressIssues = this.validationResults
+      .map(r => r.address)
+      .reduce((acc, address) => {
+        acc[address] = (acc[address] || 0) + 1;
+        return acc;
+      }, {} as Record<number, number>);
+
+    const topAddressIssues = Object.entries(addressIssues)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, 5);
+
+    this.logger.info('Top Addresses with Issues:', topAddressIssues);
+    
+    // Log all individual validation failures in verbose mode
+    if (this.validationResults.length > 0) {
+      this.logger.info('Individual Validation Failures:');
+      for (const result of this.validationResults) {
+        const addressStr = `$${result.address.toString(16).toUpperCase().padStart(6, '0')}`;
+        this.logger.info(`  ${addressStr}: [${result.severity.toUpperCase()}] ${result.type} - ${result.message}`);
+      }
+    }
+  }
+  
+  /**
+   * Log normal validation summary (normal mode)
+   */
+  private logNormalSummary(): void {
+    const errorCategories = {
+      instruction: this.validationResults.filter(r => r.type === 'instruction').length,
+      register: this.validationResults.filter(r => r.type === 'register').length,
+      addressing: this.validationResults.filter(r => r.type === 'addressing').length
+    };
+    
+    this.logger.info('Validation Error Summary:', errorCategories);
+
+    if (this.validationResults.length > 0) {
+      const commonErrors = this.validationResults
+        .map(r => r.message)
+        .reduce((acc, message) => {
+          acc[message] = (acc[message] || 0) + 1;
+          return acc;
+        }, {} as Record<string, number>);
+
+      const topCommonErrors = Object.entries(commonErrors)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3); // Show fewer errors than verbose mode
+
+      this.logger.info('Top 3 Common Errors:', topCommonErrors);
+    }
+  }
+  
+  /**
+   * Log minimal validation summary (minimal mode)
+   */
+  private logMinimalSummary(summary: ValidationSummary): void {
+    const totalErrors = this.validationResults.filter(r => r.severity === 'error').length;
+    const totalWarnings = this.validationResults.filter(r => r.severity === 'warning').length;
+    
+    this.logger.info(`Validation: ${summary.accuracyScore.toFixed(1)}% accuracy, ${totalErrors} errors, ${totalWarnings} warnings`);
   }
 
   /**
@@ -366,6 +622,34 @@ export class SNESValidationEngine {
     this.registerStats.clear();
     this.validationResults = [];
     this.enhancements = [];
+    this.errorFrequency.clear();
+  }
+  
+  /**
+   * Clear validation cache
+   */
+  clearCache(): void {
+    this.validationCache.clear();
+    this.logger.debug('Validation cache cleared');
+  }
+  
+  /**
+   * Get cache statistics
+   */
+  getCacheStats(): { size: number; maxSize: number } {
+    return {
+      size: this.validationCache.size,
+      maxSize: 50
+    };
+  }
+
+  /**
+   * Get most common errors
+   */
+  getMostCommonErrors(limit: number): [string, number][] {
+    return Array.from(this.errorFrequency.entries())
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit);
   }
 
   private isRegisterAddress(address: number): boolean {

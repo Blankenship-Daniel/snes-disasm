@@ -73,5 +73,7 @@ export interface DisassemblerOptions {
     timingContext?: TimingContext;
     enableValidation?: boolean;
     enhanceComments?: boolean;
+    validationLogLevel?: 'minimal' | 'normal' | 'verbose';
+    cache?: import('./analysis-cache').ROMAnalysisCache;
 }
 //# sourceMappingURL=types.d.ts.map

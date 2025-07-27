@@ -14,6 +14,9 @@ export declare class SNESDisassembler {
     private enableValidation;
     private enhanceComments;
     private logger;
+    private cache;
+    private lastAnalysisHash;
+    protected isAnalyzing: boolean;
     constructor(romPath: string, options?: DisassemblerOptions);
     getRomInfo(): SNESRom;
     disassemble(startAddress?: number, endAddress?: number): DisassemblyLine[];
@@ -103,6 +106,10 @@ export declare class SNESDisassembler {
      * Determine operation type from instruction mnemonic
      */
     private getOperationType;
+    /**
+     * Log detailed validation breakdown with examples and enhancements
+     */
+    private logValidationBreakdown;
     /**
      * Get validation results for the last disassembly
      */

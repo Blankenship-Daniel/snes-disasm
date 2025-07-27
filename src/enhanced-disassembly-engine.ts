@@ -8,6 +8,8 @@
 import { SNESDisassembler } from './disassembler';
 import { callMCPTool } from './mcp-integration';
 import { BankHandler } from './bank-handler';
+import { ROMAnalysisCache, globalROMCache } from './analysis-cache';
+import { SNESRom } from './rom-parser';
 
 export interface EnhancedDisassemblyOptions {
   bankAware: boolean;
@@ -44,6 +46,8 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
   private bankHandler: BankHandler;
   private analysis: ROMAnalysis;
   private stats: DisassemblyStats;
+  private enhancedCache: ROMAnalysisCache;
+  private cachedRomInfo: SNESRom | null = null;
 
   constructor(romFile: string, options: EnhancedDisassemblyOptions) {
     super(romFile);
@@ -51,6 +55,7 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     // Get cartridge info from the parent class's ROM
     const romInfo = this.getRomInfo();
     this.bankHandler = new BankHandler(romInfo.cartridgeInfo);
+    this.enhancedCache = globalROMCache;
     this.analysis = {
       vectors: [],
       functions: [],
@@ -76,14 +81,40 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
     this.analysisOptions = options;
   }
 
+  // Override getRomInfo to prevent recursion during analysis
+  getRomInfo(): SNESRom {
+    // Use cached ROM info if available to prevent recursive calls to this method
+    // This avoids circular dependencies during cache initialization.
+    if (this.cachedRomInfo) {
+      return this.cachedRomInfo;
+    }
+    
+    // Get ROM info from parent class and cache it locally to avoid using analysis cache
+    // Local caching is sufficient and avoids introducing circular dependencies.
+    this.cachedRomInfo = super.getRomInfo();
+    return this.cachedRomInfo;
+  }
+
   analyze(): { functions: number[], data: number[] } {
-    // Perform base analysis
-    const baseAnalysis = super.analyze();
+    // Prevent recursion by checking if enhanced analysis is already running
+    if (this.isAnalyzing) {
+      console.warn('Enhanced analysis already in progress, skipping to prevent recursion.');
+      return { functions: [], data: [] };
+    }
+    
+    this.isAnalyzing = true;
+    
+    try {
+      // Perform base analysis
+      const baseAnalysis = super.analyze();
 
-    // Trigger enhanced analysis asynchronously (don't await to match signature)
-    this.performEnhancedAnalysis();
+      // Trigger enhanced analysis asynchronously (don't await to match signature)
+      this.performEnhancedAnalysis();
 
-    return baseAnalysis;
+      return baseAnalysis;
+    } finally {
+      this.isAnalyzing = false;
+    }
   }
 
   private async performEnhancedAnalysis(): Promise<void> {
@@ -110,9 +141,17 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
   }
 
   private async extractInterruptVectors(): Promise<void> {
+    const romInfo = this.getRomInfo();
+    
+    // Check cache for vectors first
+    const cachedVectors = this.enhancedCache.getVectors(romInfo);
+    if (cachedVectors) {
+      this.analysis.vectors = cachedVectors;
+      return;
+    }
+    
     try {
       // Use MCP server to get vector information
-      const romInfo = this.getRomInfo();
       const vectorInfo = await callMCPTool('extract_code', {
         data: Array.from(romInfo.data.slice(-0x20)), // Last 32 bytes typically contain vectors
         format: 'ca65',
@@ -130,9 +169,14 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
         // Fallback to manual vector extraction
         this.extractVectorsFallback();
       }
+      
+      // Cache the extracted vectors
+      this.enhancedCache.setVectors(romInfo, this.analysis.vectors);
     } catch (error) {
       console.warn('MCP vector extraction failed, using fallback method');
       this.extractVectorsFallback();
+      // Cache fallback results too
+      this.enhancedCache.setVectors(romInfo, this.analysis.vectors);
     }
   }
 
@@ -165,6 +209,14 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
 
   private async analyzeBankLayout(): Promise<void> {
     const romInfo = this.getRomInfo();
+    
+    // Check cache for bank layout first
+    const cachedBankLayout = this.enhancedCache.getBankLayout(romInfo);
+    if (cachedBankLayout) {
+      this.analysis.bankLayout = cachedBankLayout;
+      return;
+    }
+    
     const romSize = romInfo.data.length;
     const bankSize = 0x8000; // 32KB banks for LoROM
     const numBanks = Math.ceil(romSize / bankSize);
@@ -184,6 +236,9 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
         type: bankType
       });
     }
+    
+    // Cache the bank layout analysis
+    this.enhancedCache.setBankLayout(romInfo, this.analysis.bankLayout);
   }
 
   private classifyBankContent(bankData: Buffer, bankNumber: number): string {
@@ -232,12 +287,33 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
   }
 
   private async detectFunctions(): Promise<void> {
+    const romInfo = this.getRomInfo();
+    const analysisParams = {
+      generateLabels: this.options.generateLabels,
+      bankAware: this.options.bankAware
+    };
+    
+    // Check cache for function analysis first
+    const cachedFunctions = this.enhancedCache.getFunctions(romInfo, analysisParams);
+    if (cachedFunctions) {
+      // Handle the case where cached functions is an object with functions array
+      const functionsArray = cachedFunctions.functions || [];
+      this.analysis.functions = functionsArray.map((f: any) => ({
+        name: f.name || `func_${f.address?.toString(16)?.toUpperCase() || 'unknown'}`,
+        address: f.address || 0,
+        size: f.size || 0,
+        type: f.type || 'Function',
+        description: f.description
+      }));
+      this.stats.functionsDetected = this.analysis.functions.length;
+      return;
+    }
+    
     try {
       // Use enhanced pattern recognition to detect functions
       const analysisChunks = [];
       const chunkSize = 0x8000;
 
-      const romInfo = this.getRomInfo();
       for (let offset = 0; offset < romInfo.data.length; offset += chunkSize) {
         const chunk = romInfo.data.slice(offset, Math.min(offset + chunkSize, romInfo.data.length));
         analysisChunks.push({
@@ -259,6 +335,9 @@ export class EnhancedDisassemblyEngine extends SNESDisassembler {
       if (this.options.generateLabels) {
         await this.generateFunctionLabels();
       }
+      
+      // Cache the function analysis results
+    this.enhancedCache.setFunctions(romInfo, { functions: this.analysis.functions, data: [] }, analysisParams);
 
     } catch (error) {
       console.warn('Function detection failed:', error);

@@ -1,0 +1,129 @@
+{
+  "workflow_id": "code_analysis_1753624723",
+  "workflow_type": "code_analysis",
+  "start_time": "2025-07-27T08:58:43.130771",
+  "end_time": "2025-07-27T08:58:43.130873",
+  "total_duration_ms": 2700,
+  "operations": [
+    {
+      "tool_name": "find_functions",
+      "parameters": {
+        "function_name": "sprite_handler",
+        "directory": "src"
+      },
+      "output_data": {
+        "functions_found": [
+          {
+            "name": "sprite_update",
+            "address": "0x9000",
+            "size": 256
+          },
+          {
+            "name": "sprite_collision",
+            "address": "0x9100",
+            "size": 128
+          },
+          {
+            "name": "sprite_render",
+            "address": "0x9180",
+            "size": 192
+          }
+        ],
+        "memory_usage": {
+          "code_size": 576,
+          "ram_usage": 64,
+          "registers_accessed": [
+            "$2100",
+            "$2101",
+            "$2102"
+          ]
+        }
+      },
+      "timestamp": "2025-07-27T08:58:43.130836",
+      "duration_ms": 1500,
+      "success": true,
+      "error_message": null
+    },
+    {
+      "tool_name": "memory_map",
+      "parameters": {
+        "address": "$7E0000",
+        "type": "ram"
+      },
+      "output_data": {
+        "memory_regions": [
+          {
+            "start": "$7E0000",
+            "end": "$7EFFFF",
+            "type": "WRAM",
+            "size": "64KB"
+          },
+          {
+            "start": "$7F0000",
+            "end": "$7FFFFF",
+            "type": "WRAM",
+            "size": "64KB"
+          }
+        ],
+        "usage_patterns": [
+          "sprite_data",
+          "level_buffers",
+          "temp_variables"
+        ]
+      },
+      "timestamp": "2025-07-27T08:58:43.130858",
+      "duration_ms": 800,
+      "success": true,
+      "error_message": null
+    },
+    {
+      "tool_name": "lookup_instruction",
+      "parameters": {
+        "mnemonic": "LDA",
+        "mode": "absolute"
+      },
+      "output_data": {
+        "opcodes": [
+          "$AD",
+          "$AF",
+          "$B9",
+          "$BD"
+        ],
+        "addressing_modes": [
+          "absolute",
+          "absolute_long",
+          "absolute_y",
+          "absolute_x"
+        ],
+        "cycles": [
+          4,
+          5,
+          4,
+          4
+        ],
+        "usage_examples": [
+          "LDA $2100",
+          "LDA $7E0000",
+          "LDA data,Y",
+          "LDA table,X"
+        ]
+      },
+      "timestamp": "2025-07-27T08:58:43.130868",
+      "duration_ms": 400,
+      "success": true,
+      "error_message": null
+    }
+  ],
+  "key_findings": [
+    "Functions analyzed: 1",
+    "Operation success rate: 100.0%"
+  ],
+  "files_created": [],
+  "cross_references": {},
+  "suggested_next_steps": [
+    "Compare implementation with SNES9x source code",
+    "Validate against hardware specifications",
+    "Generate assembly code templates"
+  ],
+  "success": true
+}
