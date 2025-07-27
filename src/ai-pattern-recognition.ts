@@ -20,11 +20,24 @@ export interface GraphicsClassification {
 }
 
 export interface AudioClassification {
-  type: 'brr_sample' | 'sequence' | 'spc_code' | 'instrument';
+  type: 'brr_sample' | 'sequence' | 'spc_code' | 'instrument' | 'sfx' | 'voice' | 'percussion';
   confidence: number;
   sampleRate?: number;
   channels?: number;
   encoding?: 'brr' | 'raw' | 'compressed';
+  // Enhanced classification metadata
+  category?: 'instrument' | 'sfx' | 'voice' | 'percussion' | 'ambient';
+  instrumentType?: 'piano' | 'strings' | 'brass' | 'woodwind' | 'synth' | 'drum' | 'unknown';
+  voiceType?: 'male' | 'female' | 'child' | 'narrator' | 'unknown';
+  sfxType?: 'impact' | 'environment' | 'ui' | 'magic' | 'mechanical' | 'unknown';
+  loopDetected?: boolean;
+  boundaryQuality?: number; // 0.0-1.0 confidence in sample boundaries
+  musicPattern?: {
+    melodyComplexity: number;
+    rhythmPattern: string;
+    keySignature?: string;
+    tempo?: number;
+  };
 }
 
 export interface TextClassification {
@@ -78,17 +91,20 @@ export class AIPatternRecognizer {
   }
 
   /**
-   * Classify audio data using sequence-based transformers
+   * Classify audio data using sequence-based transformers with enhanced BRR sample analysis
    */
   async classifyAudioData(data: Uint8Array, offset: number = 0): Promise<AudioClassification> {
     if (!this.sequenceClassifier) {
-      // Fallback to pattern-based classification
-      return this.heuristicAudioClassification(data, offset);
+      // Fallback to enhanced pattern-based classification
+      return this.enhancedHeuristicAudioClassification(data, offset);
     }
 
     // Process as byte sequence for transformer classification
     const sequence = data.slice(offset, offset + Math.min(2048, data.length - offset));
-    return await this.sequenceClassifier.classifyAudio(sequence);
+    const aiResult = await this.sequenceClassifier.classifyAudio(sequence);
+    
+    // Enhance AI result with additional pattern analysis
+    return this.enhanceAudioClassification(aiResult, data, offset);
   }
 
   /**
@@ -254,19 +270,46 @@ export class AIPatternRecognizer {
     };
   }
 
-  private heuristicAudioClassification(data: Uint8Array, offset: number): AudioClassification {
-    // BRR sample detection
-    if (this.detectBRRPattern(data, offset)) {
+  /**
+   * Enhanced heuristic audio classification with detailed sample type detection
+   */
+  private enhancedHeuristicAudioClassification(data: Uint8Array, offset: number): AudioClassification {
+    const sample = data.slice(offset, Math.min(data.length, offset + 1024));
+    
+    // Enhanced BRR sample detection with boundary analysis
+    const brrDetected = this.detectBRRPattern(sample, offset);
+    if (brrDetected) {
+      const sampleClassification = this.detectSampleType(sample);
+      const boundaryQuality = this.heuristicAudioBoundaries(data, offset);
+      
       return {
         type: 'brr_sample',
         confidence: 0.8,
         encoding: 'brr',
-        sampleRate: 32000
+        sampleRate: 32000,
+        category: sampleClassification.category,
+        instrumentType: sampleClassification.instrumentType,
+        voiceType: sampleClassification.voiceType,
+        sfxType: sampleClassification.sfxType,
+        loopDetected: false,
+        boundaryQuality
+      };
+    }
+    
+    // Enhanced sequence detection with music pattern analysis
+    const sequenceDetected = this.detectSequencePattern(sample, offset);
+    if (sequenceDetected) {
+      return {
+        type: 'sequence',
+        confidence: 0.7,
+        channels: 8,
+        encoding: 'raw',
+        musicPattern: this.detectMusicPattern(sample)
       };
     }
     
     // SPC code detection (common opcodes and patterns)
-    if (this.detectSPCCodePattern(data, offset)) {
+    if (this.detectSPCCodePattern(sample, 0)) {
       return {
         type: 'spc_code',
         confidence: 0.75,
@@ -274,19 +317,44 @@ export class AIPatternRecognizer {
       };
     }
     
-    // Music sequence detection
-    if (this.detectSequencePattern(data, offset)) {
-      return {
-        type: 'sequence',
-        confidence: 0.7,
-        channels: 8
-      };
+    // Default fallback with low confidence
+    return {
+      type: 'brr_sample',
+      confidence: 0.2,
+      encoding: 'raw',
+      boundaryQuality: 0.1
+    };
+  }
+  
+  /**
+   * Enhance AI classification results with additional pattern analysis
+   */
+  private enhanceAudioClassification(aiResult: AudioClassification, data: Uint8Array, offset: number): AudioClassification {
+    const sample = data.slice(offset, Math.min(data.length, offset + 1024));
+    
+    // Add boundary quality analysis
+    const boundaryQuality = this.heuristicAudioBoundaries(data, offset);
+    
+    // Add music pattern analysis if it's a sequence
+    let musicPattern;
+    if (aiResult.type === 'sequence') {
+      musicPattern = this.detectMusicPattern(sample);
+    }
+    
+    // Add detailed sample classification if it's a BRR sample
+    let sampleClassification;
+    if (aiResult.type === 'brr_sample' || aiResult.type === 'instrument') {
+      sampleClassification = this.detectSampleType(sample);
     }
     
     return {
-      type: 'brr_sample',
-      confidence: 0.3,
-      encoding: 'raw'
+      ...aiResult,
+      boundaryQuality,
+      musicPattern,
+      category: sampleClassification?.category || aiResult.category,
+      instrumentType: sampleClassification?.instrumentType || aiResult.instrumentType,
+      voiceType: sampleClassification?.voiceType || aiResult.voiceType,
+      sfxType: sampleClassification?.sfxType || aiResult.sfxType
     };
   }
 
@@ -569,6 +637,68 @@ export class AIPatternRecognizer {
     }
     
     return dteIndicators > data.length * 0.3; // 30% of bytes are DTE indicators
+  }
+
+  /**
+   * Detect sample type characteristics for audio classification
+   */
+  private detectSampleType(data: Uint8Array): {
+    category: 'instrument' | 'sfx' | 'voice' | 'percussion' | 'ambient';
+    instrumentType?: 'piano' | 'strings' | 'brass' | 'woodwind' | 'synth' | 'drum' | 'unknown';
+    voiceType?: 'male' | 'female' | 'child' | 'narrator' | 'unknown';
+    sfxType?: 'impact' | 'environment' | 'ui' | 'magic' | 'mechanical' | 'unknown';
+  } {
+    const entropy = this.calculateEntropy(data);
+    const variation = this.calculateVariation(data);
+    
+    // Simple heuristic classification based on entropy and variation
+    if (entropy < 2.0 && variation < 0.1) {
+      return { category: 'percussion', instrumentType: 'drum' };
+    } else if (entropy > 6.0) {
+      return { category: 'voice', voiceType: 'unknown' };
+    } else if (variation > 0.5) {
+      return { category: 'instrument', instrumentType: 'unknown' };
+    } else {
+      return { category: 'sfx', sfxType: 'unknown' };
+    }
+  }
+
+  /**
+   * Analyze audio boundaries for quality assessment
+   */
+  private heuristicAudioBoundaries(data: Uint8Array, offset: number): number {
+    // Simple boundary quality assessment
+    const windowSize = Math.min(64, data.length - offset);
+    const window = data.slice(offset, offset + windowSize);
+    
+    // Check for clean boundaries (low noise at edges)
+    const startNoise = Math.abs(window[0] - 128) / 128;
+    const endNoise = Math.abs(window[window.length - 1] - 128) / 128;
+    
+    return 1.0 - (startNoise + endNoise) / 2;
+  }
+
+  /**
+   * Detect music pattern characteristics
+   */
+  private detectMusicPattern(data: Uint8Array): {
+    melodyComplexity: number;
+    rhythmPattern: string;
+    keySignature?: string;
+    tempo?: number;
+  } {
+    const entropy = this.calculateEntropy(data);
+    const variation = this.calculateVariation(data);
+    
+    // Simple pattern detection based on statistical properties
+    const melodyComplexity = entropy / 8.0; // Normalize to 0-1
+    const rhythmPattern = variation > 0.5 ? 'complex' : 'simple';
+    
+    return {
+      melodyComplexity,
+      rhythmPattern,
+      tempo: entropy * 60 + 60 // Rough tempo estimation
+    };
   }
 }
 

@@ -3,7 +3,7 @@ import * as path from 'path';
 
 describe('A Link to the Past ROM Test', () => {
   let disassembler: SNESDisassembler;
-  const romPath = path.join(__dirname, '../roms/alttp.smc');
+  const romPath = path.join(__dirname, '../snes_games/Legend_of_Zelda_The_A_Link_to_the_Past.sfc');
   
   beforeAll(() => {
     disassembler = new SNESDisassembler(romPath);

@@ -22,6 +22,10 @@ export declare class SNESDisassembler {
     private formatOperandWithSymbols;
     addLabel(address: number, label: string): void;
     addComment(address: number, comment: string): void;
+    /**
+     * Export analyzed SPC state to an SPC file
+     */
+    exportSPC(outputPath: string): Uint8Array;
     analyze(): {
         functions: number[];
         data: number[];

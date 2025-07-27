@@ -9,6 +9,8 @@ const output_formats_extended_1 = require("./output-formats-extended");
 const symbol_manager_1 = require("./symbol-manager");
 const validation_engine_1 = require("./validation-engine");
 const snes_reference_tables_1 = require("./snes-reference-tables");
+const spc_exporter_1 = require("./spc-exporter");
+const spc_state_extractor_1 = require("./spc-state-extractor");
 class SNESDisassembler {
     constructor(romPath, options = {}) {
         this.rom = rom_parser_1.RomParser.parse(romPath);
@@ -228,6 +230,44 @@ class SNESDisassembler {
     }
     addComment(address, comment) {
         this.comments.set(address, comment);
+    }
+    /**
+     * Export analyzed SPC state to an SPC file
+     */
+    exportSPC(outputPath) {
+        console.log('🎵 Extracting SPC audio state from ROM...');
+        // Perform full disassembly and analysis
+        const lines = this.disassemble();
+        this.analyze();
+        // Initialize SPC state extractor and extract audio state
+        const extractedState = spc_state_extractor_1.SPCStateExtractor.extractAudioState(lines, this.rom.data, this.rom.cartridgeInfo);
+        // Create SPC export metadata using extracted metadata
+        const spcMetadata = {
+            songTitle: extractedState.metadata.gameTitle || 'Unknown Game',
+            gameTitle: extractedState.metadata.gameTitle || this.rom.header.title.trim() || 'Unknown Game',
+            artist: 'Unknown Artist',
+            dumperName: 'SNESDisassembler',
+            comments: `Extracted from ${this.rom.header.title}\nMapping Mode: ${this.rom.cartridgeInfo.type}\nROM Size: ${(this.rom.cartridgeInfo.romSize / 1024).toFixed(0)} KB`,
+            dumpDate: new Date().toLocaleDateString('en-US'),
+            playTime: extractedState.metadata.playTime || 180, // 3 minutes default
+            fadeLength: extractedState.metadata.fadeLength || 10000 // 10 seconds fade
+        };
+        console.log(`📋 SPC Metadata:`);
+        console.log(`   Title: ${spcMetadata.gameTitle}`);
+        console.log(`   Artist: ${spcMetadata.artist}`);
+        console.log(`   Dumper: ${spcMetadata.dumperName}`);
+        console.log(`   Comments: ${spcMetadata.comments.split('\n')[0]}`);
+        // Export SPC file using static method
+        const spcBuffer = spc_exporter_1.SPCExporter.exportSPC(extractedState.spc700State, extractedState.dspState, spcMetadata);
+        console.log(`✅ SPC file exported (${spcBuffer.length} bytes)`);
+        console.log(`   RAM Size: ${extractedState.spc700State.ram?.length || 0} bytes`);
+        console.log(`   DSP Registers: ${extractedState.dspState.registers?.length || 0} registers`);
+        console.log(`   Timer States: 3 timers (timer0, timer1, timer2)`);
+        // Write SPC file to disk
+        const fs = require('fs');
+        fs.writeFileSync(outputPath, spcBuffer);
+        console.log(`💾 SPC exported to ${outputPath}`);
+        return spcBuffer;
     }
     // Enhanced analysis using the analysis engine
     analyze() {

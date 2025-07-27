@@ -2194,6 +2194,38 @@ export class AnalysisEngine {
     return this.symbolDependencies;
   }
 
+  /**
+   * Extract audio data suitable for SPC export
+   */
+  public extractAudioData(lines: DisassemblyLine[]): { ram: Uint8Array, dspRegisters: number[], timers: any, ioPorts: any } {
+    const audioData = {
+      ram: new Uint8Array(65536), // SPC700 RAM size
+      dspRegisters: new Array(128).fill(0), // DSP registers
+      timers: {}, // Timer states
+      ioPorts: {} // I/O ports states
+    };
+
+    // Analyze lines for audio data
+    this.detectAudioData(lines);
+
+    // Extract relevant data from detected patterns
+    lines.forEach(line => {
+      // Check if this line represents music data
+      const musicDataStruct = this.dataStructures.get(line.address);
+      if (musicDataStruct && musicDataStruct.type === 'MUSIC_DATA') {
+        // Extract RAM, DSP, Timer, I/O port states based on line details
+        if (line.bytes) {
+          const targetAddr = line.address & 0xFFFF; // Ensure within SPC700 RAM range
+          if (targetAddr < audioData.ram.length) {
+            audioData.ram.set(line.bytes, targetAddr);
+          }
+        }
+      }
+    });
+
+    return audioData;
+  }
+
   // ====================================================================
   // MACRO AND INLINE FUNCTION DETECTION
   // ====================================================================

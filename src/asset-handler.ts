@@ -363,16 +363,53 @@ async function extractAudioAssets(
 }
 
 function detectAudioRegions(romData: Buffer): Array<{start: number, end: number, type: string}> {
-  const regions = [
-    { start: 0x0C0000, end: 0x0E0000, type: 'SPC Engine' },
-    { start: 0x100000, end: 0x120000, type: 'Music Data' },
-    { start: 0x080000, end: 0x0A0000, type: 'Sound Effects' },
-    { start: 0x0E0000, end: 0x100000, type: 'BRR Samples' },
-    { start: 0x120000, end: 0x140000, type: 'Additional Audio' }
-  ];
+  const regions = [];
   
-  // Filter regions that exist in the ROM
-  return regions.filter(region => region.start < romData.length);
+  // Common SNES audio regions - more comprehensive coverage
+  // Early ROM regions (headers and initial data)
+  if (romData.length > 0x8000) {
+    regions.push({ start: 0x0000, end: 0x8000, type: 'ROM Header & Early Data' });
+  }
+  
+  // Standard graphics/audio boundary regions
+  if (romData.length > 0x20000) {
+    regions.push({ start: 0x8000, end: 0x20000, type: 'Low Bank Audio/Graphics' });
+  }
+  
+  // Common audio data regions
+  if (romData.length > 0x40000) {
+    regions.push({ start: 0x20000, end: 0x40000, type: 'Primary Audio Bank' });
+  }
+  
+  if (romData.length > 0x80000) {
+    regions.push({ start: 0x40000, end: 0x80000, type: 'Secondary Audio Bank' });
+  }
+  
+  // High ROM regions (common for audio in larger ROMs)
+  if (romData.length > 0xC0000) {
+    regions.push({ start: 0x80000, end: 0xC0000, type: 'Extended Audio Bank' });
+  }
+  
+  if (romData.length > 0x100000) {
+    regions.push({ start: 0xC0000, end: 0x100000, type: 'SPC Engine & Samples' });
+  }
+  
+  if (romData.length > 0x200000) {
+    regions.push({ start: 0x100000, end: 0x200000, type: 'Large ROM Audio Data' });
+  }
+  
+  // Add smaller scanning regions for thorough coverage
+  const scanRegions = [];
+  for (let addr = 0; addr < Math.min(romData.length, 0x400000); addr += 0x10000) {
+    if (addr + 0x1000 < romData.length) {
+      scanRegions.push({ start: addr, end: addr + 0x1000, type: `Scan Region ${addr.toString(16).toUpperCase()}` });
+    }
+  }
+  
+  regions.push(...scanRegions);
+  
+  console.log(`🔍 Detected ${regions.length} audio regions to scan in ${romData.length} byte ROM`);
+  return regions.filter(region => region.start < romData.length && region.end <= romData.length);
 }
 
 async function extractTextAssets(

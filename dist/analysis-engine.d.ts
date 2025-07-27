@@ -313,6 +313,15 @@ export declare class AnalysisEngine {
      */
     getSymbolDependencies(): Map<number, Set<number>>;
     /**
+     * Extract audio data suitable for SPC export
+     */
+    extractAudioData(lines: DisassemblyLine[]): {
+        ram: Uint8Array;
+        dspRegisters: number[];
+        timers: any;
+        ioPorts: any;
+    };
+    /**
      * Detect macro patterns and inline functions in the code
      */
     private detectMacrosAndInlineFunctions;
